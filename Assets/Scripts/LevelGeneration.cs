@@ -1,13 +1,14 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class LevelGeneration : MonoBehaviour
 {
-    Vector2 worldSize = new Vector2(4, 4);
+    Vector2 worldSize = new Vector2(6, 6);
     Room[,] rooms;
     List<Vector2> takenPositions = new List<Vector2>();
-    int gridSizeX, gridSizeY, numberOfRooms = 30;
+    int gridSizeX, gridSizeY, numberOfRooms = 70;
     public GameObject roomWhiteObj;
     public Transform mapRoot;
     void Start()
@@ -31,10 +32,13 @@ public class LevelGeneration : MonoBehaviour
         takenPositions.Insert(0, Vector2.zero);
         Vector2 checkPos = Vector2.zero;
         //magic numbers
-        float randomCompare = 0.2f, randomCompareStart = 0.1f, randomCompareEnd = 0.01f;
+        // The higher the randomCompare, the more likely the room will branch out
+        float randomCompare = 0.2f, randomCompareStart = 0.7f, randomCompareEnd = 0.5f;
         //add rooms
         for (int i = 0; i < numberOfRooms - 1; i++)
         {
+            // With more rooms, the lower the randonPerc, that makes the randomCompare higher, the less likely to enter the if statement.
+            // Not entering the SelectiveNewPosition() method means that the room will not branch out.
             float randomPerc = ((float)i) / (((float)numberOfRooms - 1));
             // Lerp: return a + (b - a) * Clamp01(t); t is clamped between 0 and 1
             randomCompare = Mathf.Lerp(randomCompareStart, randomCompareEnd, randomPerc);
@@ -44,7 +48,11 @@ public class LevelGeneration : MonoBehaviour
             //test new position
             // Change here so that room creation can be more like a hospital. Magic number that alter the functionality
             // If its a case where the room as more than one neighbor, we want to make it more likely to branch out based on the randomCompare
-            if (NumberOfNeighbors(checkPos, takenPositions) > 1 && Random.value > randomCompare)
+            if (((float)i) / ((float)numberOfRooms - 1) > 0.7f)
+            {
+                checkPos = LonelyNewPosition();
+            }
+            else if (NumberOfNeighbors(checkPos, takenPositions) > 1 && UnityEngine.Random.value > randomCompare)
             {
                 int iterations = 0;
                 do
@@ -58,6 +66,9 @@ public class LevelGeneration : MonoBehaviour
             }
             //finalize position
             rooms[(int)checkPos.x + gridSizeX, (int)checkPos.y + gridSizeY] = new Room(checkPos, 0);
+            //Debug.Log("checkPos.x: " + (int)checkPos.x + "  gridSizeX: " + gridSizeX);
+            //Debug.Log("checkPos.y: " + (int)checkPos.y + "  gridSizeY: " + gridSizeY);
+            //Debug.Log("---");
             takenPositions.Insert(0, checkPos);
         }
     }
@@ -67,11 +78,11 @@ public class LevelGeneration : MonoBehaviour
         Vector2 checkingPos = Vector2.zero;
         do
         {
-            int index = Mathf.RoundToInt(Random.value * (takenPositions.Count - 1)); // pick a random room
+            int index = Mathf.RoundToInt(UnityEngine.Random.value * (takenPositions.Count - 1)); // pick a random room
             x = (int)takenPositions[index].x;//capture its x, y position
             y = (int)takenPositions[index].y;
-            bool UpDown = (Random.value < 0.5f);//randomly pick wether to look on hor or vert axis
-            bool positive = (Random.value < 0.5f);//pick whether to be positive or negative on that axis
+            bool UpDown = (UnityEngine.Random.value < 0.5f);//randomly pick wether to look on hor or vert axis
+            bool positive = (UnityEngine.Random.value < 0.5f);//pick whether to be positive or negative on that axis
             if (UpDown)
             { //find the position bnased on the above bools
                 if (positive)
@@ -110,13 +121,13 @@ public class LevelGeneration : MonoBehaviour
             {
                 //instead of getting a room to find an adject empty space, we start with one that only 
                 //has one neighbor. This will make it more likely that it returns a room that branches out
-                index = Mathf.RoundToInt(Random.value * (takenPositions.Count - 1));
+                index = Mathf.RoundToInt(UnityEngine.Random.value * (takenPositions.Count - 1));
                 inc++;
             } while (NumberOfNeighbors(takenPositions[index], takenPositions) > 1 && inc < 100);
             x = (int)takenPositions[index].x;
             y = (int)takenPositions[index].y;
-            bool UpDown = (Random.value < 0.5f);
-            bool positive = (Random.value < 0.5f);
+            bool UpDown = (UnityEngine.Random.value < 0.5f);
+            bool positive = (UnityEngine.Random.value < 0.5f);
             if (UpDown)
             {
                 if (positive)
@@ -147,6 +158,60 @@ public class LevelGeneration : MonoBehaviour
         }
         return checkingPos;
     }
+
+    Vector2 LonelyNewPosition()
+    { // Creates a room that is connect to another room by only one door
+        int x = 0, y = 0;
+        Vector2 checkingPos = Vector2.zero;
+        int inc = 0;
+        do
+        {
+            inc++;
+            int index = Mathf.RoundToInt(UnityEngine.Random.value * (takenPositions.Count - 1)); // pick a random room
+            x = (int)takenPositions[index].x;//capture its x, y position
+            y = (int)takenPositions[index].y;
+            bool UpDown = (UnityEngine.Random.value < 0.5f);//randomly pick wether to look on hor or vert axis
+            bool positive = (UnityEngine.Random.value < 0.5f);//pick whether to be positive or negative on that axis
+            if (UpDown)
+            { //find the position bnased on the above bools
+                if (positive)
+                {
+                    y += 1;
+                }
+                else
+                {
+                    y -= 1;
+                }
+            }
+            else
+            {
+                if (positive)
+                {
+                    x += 1;
+                }
+                else
+                {
+                    x -= 1;
+                }
+            }
+            checkingPos = new Vector2(x, y);
+
+            // Stop loop when new position does not have more than one neighbor
+        } while ((takenPositions.Contains(checkingPos)) || (NumberOfNeighbors(checkingPos, takenPositions) > 1) && (inc < 100) || x >= gridSizeX || x < -gridSizeX || y >= gridSizeY || y < -gridSizeY); //make sure the position is valid
+        // Debug.Log((bool)(((takenPositions.Contains(checkingPos)) || (NumberOfNeighbors(checkingPos, takenPositions) > 1) || (inc < 100))));
+
+
+        if (inc >= 100)
+        { // break loop if it takes too long: this loop isnt garuanteed to find solution, which is fine for this
+            Debug.Log("Error: could not find position with only one neighbor");
+        }
+        // Print the number of neighbors of chosen position
+        // Debug.Log("Number of neighbors: " + (NumberOfNeighbors(checkingPos, takenPositions)));
+        // Debug.Log("takenPositions.Contains: " + takenPositions.Contains(checkingPos));
+        // Debug.Log("(inc < 100): " + (bool)(inc < 100));
+        return checkingPos;
+    }
+
     int NumberOfNeighbors(Vector2 checkingPos, List<Vector2> usedPositions)
     {
         int ret = 0; // start at zero, add 1 for each side there is already a room
@@ -179,8 +244,9 @@ public class LevelGeneration : MonoBehaviour
             Vector2 drawPos = room.gridPos;
             drawPos.x *= 16;//aspect ratio of map sprite
             drawPos.y *= 8;
+            // Debug.Log("x: " + drawPos.x.ToString() + "   y: " + drawPos.y.ToString());
             //create map obj and assign its variables
-            MapSpriteSelector mapper = Object.Instantiate(roomWhiteObj, drawPos, Quaternion.identity).GetComponent<MapSpriteSelector>();
+            MapSpriteSelector mapper = UnityEngine.Object.Instantiate(roomWhiteObj, drawPos, Quaternion.identity).GetComponent<MapSpriteSelector>();
             mapper.type = room.type;
             mapper.up = room.doorTop;
             mapper.down = room.doorBot;

@@ -15,7 +15,7 @@ public class RoomInstance : MonoBehaviour
     [SerializeField]
     ColorToGameObject[] mappings;
     float tileSize = 16;
-    Vector2 roomSizeInTiles = new Vector2(9, 17);
+    Vector2 roomSizeInTiles = new Vector2(9, 17); // Vector2(x, y), where x is the width and y is the height of the room
     public void Setup(Texture2D _tex, Vector2 _gridPos, int _type, bool _doorTop, bool _doorBot, bool _doorLeft, bool _doorRight)
     {
         tex = _tex;
@@ -79,6 +79,7 @@ public class RoomInstance : MonoBehaviour
         {
             if (mapping.color.Equals(pixelColor))
             {
+                // Debug.Log(mapping.color + ", " + pixelColor);   
                 Vector3 spawnPos = positionFromTileGrid(x, y);
                 Instantiate(mapping.prefab, spawnPos, Quaternion.identity).transform.parent = this.transform;
             }
