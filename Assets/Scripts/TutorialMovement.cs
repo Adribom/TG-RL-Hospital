@@ -19,7 +19,7 @@ public class TutorialMovement : MonoBehaviour {
 			vertMove = System.Math.Sign(Input.GetAxisRaw("Vertical"));
 			Vector3 tempPos = transform.position;
 			tempPos += Vector3.right * horMove * moveJump.x; //jump bnetween rooms based opn input
-			tempPos += Vector3.up * vertMove * moveJump.y;
+			tempPos += Vector3.forward * vertMove * moveJump.y;
 			transform.position = tempPos;
 		}
 	}

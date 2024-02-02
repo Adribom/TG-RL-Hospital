@@ -59,11 +59,11 @@ MonoBehaviour:
   spRUL: {fileID: 21300000, guid: 76c98fed3144d94458de2ad9eadc04e9, type: 3}
   spDRU: {fileID: 21300000, guid: 4e19e0d3b88063b46ad8574093fe3e66, type: 3}
   spLDR: {fileID: 21300000, guid: b3403c31138e49a4f82c695d69220e47, type: 3}
-  spUDRL: {fileID: 21300000, guid: 564d6ca77f8ea7041bf378157f5feba0, type: 3}
-  up: 0
-  down: 0
-  left: 0
-  right: 0
+  spUDRL: {fileID: 21300000, guid: f8bd375a6a3f70442a9144d0e96fda57, type: 3}
+  up: 1
+  down: 1
+  left: 1
+  right: 1
   type: 0
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   enterColor: {r: 0.10981619, g: 1, b: 0, a: 1}

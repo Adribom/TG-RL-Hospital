@@ -234,6 +234,7 @@ public class LevelGeneration : MonoBehaviour
         return ret;
     }
     void DrawMap()
+    // This function will draw a debugging map outside of the simulation bounds
     {
         foreach (Room room in rooms)
         {
@@ -244,6 +245,7 @@ public class LevelGeneration : MonoBehaviour
             Vector2 drawPos = room.gridPos;
             drawPos.x *= 16;//aspect ratio of map sprite
             drawPos.y *= 8;
+            // Debug.Log("drawPos: " + drawPos);   
             // Debug.Log("x: " + drawPos.x.ToString() + "   y: " + drawPos.y.ToString());
             //create map obj and assign its variables
             MapSpriteSelector mapper = UnityEngine.Object.Instantiate(roomWhiteObj, drawPos, Quaternion.identity).GetComponent<MapSpriteSelector>();
@@ -253,7 +255,10 @@ public class LevelGeneration : MonoBehaviour
             mapper.right = room.doorRight;
             mapper.left = room.doorLeft;
             mapper.gameObject.transform.parent = mapRoot;
+            //Debug.Log("mapper position: " + mapper.transform.position);
         }
+        // Set the position of the map to be out of bounds
+        mapRoot.transform.position = new Vector3(55, 750, 15);
     }
     void SetRoomDoors()
     {

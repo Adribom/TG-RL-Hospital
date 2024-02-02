@@ -32,27 +32,31 @@ public class RoomInstance : MonoBehaviour
     {
         //top door, get position then spawn
         Vector3 spawnPos = transform.position + Vector3.up * (roomSizeInTiles.y / 4 * tileSize) - Vector3.up * (tileSize / 4);
-        PlaceDoor(spawnPos, doorTop, doorU);
+        Vector3 rotation = new Vector3(0, 0, 90);
+        PlaceDoor(spawnPos, doorTop, doorU, rotation);
         //bottom door
         spawnPos = transform.position + Vector3.down * (roomSizeInTiles.y / 4 * tileSize) - Vector3.down * (tileSize / 4);
-        PlaceDoor(spawnPos, doorBot, doorD);
+        rotation = new Vector3(0, 0, 90);
+        PlaceDoor(spawnPos, doorBot, doorD, rotation);
         //right door
         spawnPos = transform.position + Vector3.right * (roomSizeInTiles.x * tileSize) - Vector3.right * (tileSize);
-        PlaceDoor(spawnPos, doorRight, doorR);
+        rotation = new Vector3(0, 0, 0);
+        PlaceDoor(spawnPos, doorRight, doorR, rotation);
         //left door
         spawnPos = transform.position + Vector3.left * (roomSizeInTiles.x * tileSize) - Vector3.left * (tileSize);
-        PlaceDoor(spawnPos, doorLeft, doorL);
+        rotation = new Vector3(0, 0, 0);
+        PlaceDoor(spawnPos, doorLeft, doorL, rotation);
     }
-    void PlaceDoor(Vector3 spawnPos, bool door, GameObject doorSpawn)
+    void PlaceDoor(Vector3 spawnPos, bool door, GameObject doorSpawn, Vector3 rotation)
     {
         // check whether its a door or wall, then spawn
         if (door)
         {
-            Instantiate(doorSpawn, spawnPos, Quaternion.identity).transform.parent = transform;
+            Instantiate(doorSpawn, spawnPos, Quaternion.Euler(rotation)).transform.parent = transform;
         }
         else
         {
-            Instantiate(doorWall, spawnPos, Quaternion.identity).transform.parent = transform;
+            Instantiate(doorWall, spawnPos, Quaternion.Euler(rotation)).transform.parent = transform;
         }
     }
     void GenerateRoomTiles()
