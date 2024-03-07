@@ -7,7 +7,7 @@ public class RoomInstance : MonoBehaviour
     public Texture2D tex;
     [HideInInspector]
     public Vector2 gridPos;
-    public int type; // 0: normal, 1: enter
+    public int type; // 0: normal, 1: center
     [HideInInspector]
     public bool doorTop, doorBot, doorLeft, doorRight;
     [SerializeField]
@@ -16,7 +16,7 @@ public class RoomInstance : MonoBehaviour
     ColorToGameObject[] mappings;
     float tileSize = 16;
     Vector2 roomSizeInTiles = new Vector2(9, 17); // Vector2(x, y), where x is the width and y is the height of the room
-    public void Setup(Texture2D _tex, Vector2 _gridPos, int _type, bool _doorTop, bool _doorBot, bool _doorLeft, bool _doorRight)
+    public void Setup(Texture2D _tex, Vector2 _gridPos, int _type, bool _doorTop, bool _doorBot, bool _doorLeft, bool _doorRight, int numNeighbors)
     {
         tex = _tex;
         gridPos = _gridPos;
@@ -25,12 +25,20 @@ public class RoomInstance : MonoBehaviour
         doorBot = _doorBot;
         doorLeft = _doorLeft;
         doorRight = _doorRight;
-        MakeDoors();
-        GenerateRoomTiles();
+        if (numNeighbors == 4 && type == 0) 
+        {
+            GenerateRoomTiles(numNeighbors, type);
+        }
+        else
+        {
+            MakeDoors();
+            GenerateRoomTiles(numNeighbors, type);
+
+        }
     }
     void MakeDoors()
     {
-        //top door, get position then spawn
+        //top door, get position and set rotation then spawn
         Vector3 spawnPos = transform.position + Vector3.up * (roomSizeInTiles.y / 4 * tileSize) - Vector3.up * (tileSize / 4);
         Vector3 rotation = new Vector3(0, 0, 90);
         PlaceDoor(spawnPos, doorTop, doorU, rotation);
@@ -59,12 +67,29 @@ public class RoomInstance : MonoBehaviour
             Instantiate(doorWall, spawnPos, Quaternion.Euler(rotation)).transform.parent = transform;
         }
     }
-    void GenerateRoomTiles()
+    void GenerateRoomTiles(int numNeighbors, int type)
     {
-        //loop through every pixel of the texture
-        for (int x = 0; x < tex.width; x++)
+        //Variables for iteration
+        int xStart = 0;
+        int yStart = 0;
+        //Variables for tile size
+        int width = tex.width;
+        int height = tex.height;
+
+        //if the room has 4 neighbors, don't consider the pixels on the edges.
+        //This creates a room without walls or doors, only with obstacles
+        if (numNeighbors == 4 && type == 0)
         {
-            for (int y = 0; y < tex.height; y++)
+            xStart++;
+            yStart++;
+            width -= 1;
+            height -= 1;
+        }
+
+        //loop through every pixel of the texture
+        for (int x = xStart; x < width; x++)
+        {
+            for (int y = yStart; y < height; y++)
             {
                 GenerateTile(x, y);
             }

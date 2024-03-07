@@ -7,7 +7,7 @@ public class LevelGeneration : MonoBehaviour
 {
     Vector2 worldSize = new Vector2(6, 6);
     Room[,] rooms;
-    List<Vector2> takenPositions = new List<Vector2>();
+    public List<Vector2> takenPositions = new List<Vector2>();
     int gridSizeX, gridSizeY, numberOfRooms = 70;
     public GameObject roomWhiteObj;
     public Transform mapRoot;
@@ -22,7 +22,7 @@ public class LevelGeneration : MonoBehaviour
         CreateRooms(); //lays out the actual map
         SetRoomDoors(); //assigns the doors where rooms would connect
         DrawMap(); //instantiates objects to make up a map
-        GetComponent<SheetAssigner>().Assign(rooms); //passes room info to another script which handles generatating the level geometry
+        GetComponent<SheetAssigner>().Assign(rooms, takenPositions); //passes room info to another script which handles generatating the level geometry
     }
     void CreateRooms()
     {
@@ -31,13 +31,12 @@ public class LevelGeneration : MonoBehaviour
         rooms[gridSizeX, gridSizeY] = new Room(Vector2.zero, 1); //create room in center of grid and room type 1 (center room)
         takenPositions.Insert(0, Vector2.zero);
         Vector2 checkPos = Vector2.zero;
-        //magic numbers
         // The higher the randomCompare, the more likely the room will branch out
         float randomCompare = 0.2f, randomCompareStart = 0.7f, randomCompareEnd = 0.5f;
         //add rooms
         for (int i = 0; i < numberOfRooms - 1; i++)
         {
-            // With more rooms, the lower the randonPerc, that makes the randomCompare higher, the less likely to enter the if statement.
+            // With more rooms, the lower the randonPerc, wich makes randomCompare higher, the less likely to enter the if statement.
             // Not entering the SelectiveNewPosition() method means that the room will not branch out.
             float randomPerc = ((float)i) / (((float)numberOfRooms - 1));
             // Lerp: return a + (b - a) * Clamp01(t); t is clamped between 0 and 1
@@ -46,8 +45,7 @@ public class LevelGeneration : MonoBehaviour
             //grab new position
             checkPos = NewPosition();
             //test new position
-            // Change here so that room creation can be more like a hospital. Magic number that alter the functionality
-            // If its a case where the room as more than one neighbor, we want to make it more likely to branch out based on the randomCompare
+            // If its a case where the room has more than one neighbor, we want to make it more likely to branch out based on the randomCompare
             if (((float)i) / ((float)numberOfRooms - 1) > 0.7f)
             {
                 checkPos = LonelyNewPosition();
@@ -84,7 +82,7 @@ public class LevelGeneration : MonoBehaviour
             bool UpDown = (UnityEngine.Random.value < 0.5f);//randomly pick wether to look on hor or vert axis
             bool positive = (UnityEngine.Random.value < 0.5f);//pick whether to be positive or negative on that axis
             if (UpDown)
-            { //find the position bnased on the above bools
+            { //find the position based on the above bools
                 if (positive)
                 {
                     y += 1;
@@ -212,7 +210,7 @@ public class LevelGeneration : MonoBehaviour
         return checkingPos;
     }
 
-    int NumberOfNeighbors(Vector2 checkingPos, List<Vector2> usedPositions)
+    public int NumberOfNeighbors(Vector2 checkingPos, List<Vector2> usedPositions)
     {
         int ret = 0; // start at zero, add 1 for each side there is already a room
         if (usedPositions.Contains(checkingPos + Vector2.right))
