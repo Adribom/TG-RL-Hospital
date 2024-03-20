@@ -73,11 +73,12 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
 
-# Aditiona packages to ignore
+# Aditional packages to ignore
+/venv/
+/ml-agents/
 /[Aa]ssets/ml-agents/
 /[Aa]ssets/DungeonGenerator/
 /[Aa]ssets/DigitalKonstrukt.meta
 /[Aa]ssets/DigitalKonstrukt/*
 /[Aa]ssets/pbr_textures.meta
 /[Aa]ssets/pbr_textures/*
-/venv/
