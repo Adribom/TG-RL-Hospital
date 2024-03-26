@@ -1,0 +1,132 @@
+behaviors:
+  SingleRoom:
+    trainer_type: poca
+    hyperparameters:
+      batch_size: 128
+      buffer_size: 2048
+      learning_rate: 0.0003
+      beta: 0.005
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+      learning_rate_schedule: linear
+    network_settings:
+      normalize: false
+      hidden_units: 256
+      num_layers: 2
+      vis_encode_type: simple
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+    keep_checkpoints: 5
+    max_steps: 20000000
+    time_horizon: 128
+    summary_freq: 20000
+  SmallHospital:
+    trainer_type: poca
+    hyperparameters:
+      batch_size: 128
+      buffer_size: 2048
+      learning_rate: 0.0003
+      beta: 0.005
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+      learning_rate_schedule: linear
+    network_settings:
+      normalize: false
+      hidden_units: 256
+      num_layers: 2
+      vis_encode_type: simple
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+    keep_checkpoints: 5
+    max_steps: 20000000
+    time_horizon: 128
+    summary_freq: 20000
+  MediumHospital:
+    trainer_type: poca
+    hyperparameters:
+      batch_size: 128
+      buffer_size: 2048
+      learning_rate: 0.0003
+      beta: 0.005
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+      learning_rate_schedule: linear
+    network_settings:
+      normalize: false
+      hidden_units: 256
+      num_layers: 2
+      vis_encode_type: simple
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+    keep_checkpoints: 5
+    max_steps: 5000000
+    time_horizon: 128
+    summary_freq: 20000
+  LargeHospital:
+    trainer_type: poca
+    hyperparameters:
+      batch_size: 128
+      buffer_size: 2048
+      learning_rate: 0.0003
+      beta: 0.005
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+      learning_rate_schedule: linear
+    network_settings:
+      normalize: false
+      hidden_units: 256
+      num_layers: 2
+      vis_encode_type: simple
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+    keep_checkpoints: 5
+    max_steps: 5000000
+    time_horizon: 128
+    summary_freq: 20000
+environment_parameters:
+  HospitalSize:
+    curriculum:
+      - name: Lesson0 # The '-' is important as this is a list
+        completion_criteria:
+          measure: progress
+          behavior: SingleRoom
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 0.1
+        value: SingleRoom
+      - name: Lesson1 # This is the start of the second lesson
+        completion_criteria:
+          measure: progress
+          behavior: SmallHospital
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 0.3
+        value: SmallHospital
+      - name: Lesson2
+        completion_criteria:
+          measure: progress
+          behavior: MediumHospital
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 0.5
+        value: MediumHospital
+      - name: Lesson3
+        completion_criteria:
+          measure: progress
+          behavior: LargeHospital
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 0.5
+        value: LargeHospital

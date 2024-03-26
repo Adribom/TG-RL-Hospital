@@ -10,7 +10,7 @@ public class AmrAgent : Agent
     public GameObject MyInstrument; //my instrument gameobject. will be enabled when instrument picked up.
     public bool IHaveAnInstrument; //have i picked up a instrument
     [SerializeField] Transform Target;
-    Rigidbody rBody;
+    Rigidbody amrAgent;
     // Start is called before the first frame update
     void Start()
     {
@@ -20,7 +20,7 @@ public class AmrAgent : Agent
 
     public override void Initialize()
     {
-        rBody = GetComponent<Rigidbody>();
+        amrAgent = GetComponent<Rigidbody>();
     }
 
     // Called to set-up the environment for a new episode

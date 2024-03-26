@@ -55,7 +55,7 @@ public class SheetAssigner : MonoBehaviour {
 			//pick a random index for the array
 			int index = Mathf.RoundToInt(Random.value * (currentSheets.Length -1));
 			//find position to place room
-			Vector3 pos = new Vector3(room.gridPos.x * (roomDimensions.x + gutterSize.x), 0, room.gridPos.y * (roomDimensions.y + gutterSize.y));
+			Vector3 pos = new Vector3(room.gridPos.x * (roomDimensions.x + gutterSize.x), transform.position.y, room.gridPos.y * (roomDimensions.y + gutterSize.y));
 			RoomInstance myRoom = Instantiate(RoomObj, pos, Quaternion.identity).GetComponent<RoomInstance>();
 			myRoom.Setup(currentSheets[index], room.gridPos, room.type, room.doorTop, room.doorBot, room.doorLeft, room.doorRight, GetComponent<LevelGeneration>().NumberOfNeighbors(room.gridPos, takenPositions));
 			myRoom.transform.Rotate(90, 0, 0); // Rotate each room 90 degrees on the x-axis to make the rooms face upwards
