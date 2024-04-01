@@ -5,30 +5,27 @@ using UnityEngine;
 
 public class LevelGeneration : MonoBehaviour
 {
-    Vector2 worldSize = new Vector2(6, 6);
-    Room[,] rooms;
+    [HideInInspector]
+    public Vector2 worldSize = new Vector2(6, 6);
+    [HideInInspector]
+    public Room[,] rooms;
+    [HideInInspector]
     public List<Vector2> takenPositions = new List<Vector2>();
-    int gridSizeX, gridSizeY, numberOfRooms = 70;
+    [HideInInspector]
+    public int gridSizeX, gridSizeY, numberOfRooms = 70;
     public GameObject roomWhiteObj;
     public Transform mapRoot;
-    void Start()
-    {
-        if (numberOfRooms >= (worldSize.x * 2) * (worldSize.y * 2))
-        { // make sure we dont try to make more rooms than can fit in our grid
-            numberOfRooms = Mathf.RoundToInt((worldSize.x * 2) * (worldSize.y * 2));
-        }
-        gridSizeX = Mathf.RoundToInt(worldSize.x); //note: these are half-extents
-        gridSizeY = Mathf.RoundToInt(worldSize.y);
-        CreateRooms(); //lays out the actual map
-        SetRoomDoors(); //assigns the doors where rooms would connect
-        DrawMap(); //instantiates objects to make up a map
-        GetComponent<SheetAssigner>().Assign(rooms, takenPositions); //passes room info to another script which handles generatating the level geometry
-    }
-    void CreateRooms()
+    public void CreateRooms()
     {
         //setup
         rooms = new Room[gridSizeX * 2, gridSizeY * 2];
         rooms[gridSizeX, gridSizeY] = new Room(Vector2.zero, 1); //create room in center of grid and room type 1 (center room)
+        
+        // If takenPositions is not empty, clear it
+        if (takenPositions.Count > 0)
+        {
+            takenPositions.Clear();
+        }
         takenPositions.Insert(0, Vector2.zero);
         Vector2 checkPos = Vector2.zero;
         // The higher the randomCompare, the more likely the room will branch out
@@ -69,6 +66,7 @@ public class LevelGeneration : MonoBehaviour
             //Debug.Log("---");
             takenPositions.Insert(0, checkPos);
         }
+
     }
     Vector2 NewPosition()
     {
@@ -231,7 +229,7 @@ public class LevelGeneration : MonoBehaviour
         }
         return ret;
     }
-    void DrawMap()
+    public void DrawMap()
     // This function will draw a debugging map outside of the simulation bounds
     {
         foreach (Room room in rooms)
@@ -258,7 +256,7 @@ public class LevelGeneration : MonoBehaviour
         // Set the position of the map to be out of bounds
         mapRoot.transform.position = new Vector3(55, 750, 15);
     }
-    void SetRoomDoors()
+    public void SetRoomDoors()
     {
         for (int x = 0; x < ((gridSizeX * 2)); x++)
         {

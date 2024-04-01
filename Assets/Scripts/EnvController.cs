@@ -1,11 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.MLAgents;
+using UnityEditor;
 using UnityEngine;
 
 public class EnvController : MonoBehaviour
 {
-    [System.Serializable]
+    
+    private LevelGeneration levelGeneration;
+
     public class PlayerInfo
     {
         public AmrAgent Agent;
@@ -27,6 +30,7 @@ public class EnvController : MonoBehaviour
     private int m_ResetTimer;
 
     public List<PlayerInfo> AgentsList = new List<PlayerInfo>();
+    private List<Vector2> positionsTakenByAgents = new List<Vector2>();
     private Dictionary<AmrAgent, PlayerInfo> m_PlayerDict = new Dictionary<AmrAgent, PlayerInfo>();
     public bool UseRandomAgentRotation = true;
     public bool UseRandomAgentPosition = true;
@@ -36,29 +40,27 @@ public class EnvController : MonoBehaviour
     private int deliveryCount = 0;
     private int totalDeliveriesToReset = 10;
 
-    // Start is called before the first frame update
+    //Start is called before the first frame update
     void Start()
     {
-
         //Hide The Key
-        Key.SetActive(false);
+        //Key.SetActive(false);
 
-        // Initialize TeamManager
-        m_AgentGroup = new SimpleMultiAgentGroup();
-        foreach (var item in AgentsList)
-        {
-            item.StartingPos = item.Agent.transform.position;
-            item.StartingRot = item.Agent.transform.rotation;
-            item.Rb = item.Agent.GetComponent<Rigidbody>();
-            item.Col = item.Agent.GetComponent<Collider>();
-            // Add to team manager
-            m_AgentGroup.RegisterAgent(item.Agent);
-        }
-
+        //// Initialize TeamManager
+        //m_AgentGroup = new SimpleMultiAgentGroup();
+        //foreach (var item in AgentsList)
+        //{
+        //    item.StartingPos = item.Agent.transform.position;
+        //    item.StartingRot = item.Agent.transform.rotation;
+        //    item.Rb = item.Agent.GetComponent<Rigidbody>();
+        //    item.Col = item.Agent.GetComponent<Collider>();
+        //    // Add to team manager
+        //    m_AgentGroup.RegisterAgent(item.Agent);
+        //}
         ResetScene();
     }
 
-    // Update is called once per frame
+    //Update is called once per frame
     void FixedUpdate()
     {
         m_ResetTimer += 1;
@@ -69,58 +71,114 @@ public class EnvController : MonoBehaviour
         }
     }
 
-    public void ManageSucessfullDelivery()
-    {
-        print("Surgical instrument delivered!");
-        m_AgentGroup.AddGroupReward(1f);
-        
-        if (deliveryCount == totalDeliveriesToReset)
-            m_AgentGroup.EndGroupEpisode();
+    //public void ManageSucessfullDelivery()
+    //{
+    //    print("Surgical instrument delivered!");
+    //    m_AgentGroup.AddGroupReward(1f);
 
-        ResetScene();
-    }
+    //    if (deliveryCount == totalDeliveriesToReset)
+    //        m_AgentGroup.EndGroupEpisode();
 
-    public void AddDeliveryCount()
-    {
-        deliveryCount++;
-    }
+    //    ResetScene();
+    //}
 
-    /// <summary>
-    /// Use the ground's bounds to pick a random spawn position.
-    /// </summary>
-    public Vector3 GetRandomSpawnPos()
-    {
-        
-    }
-    Quaternion GetRandomRot()
-    {
-        return Quaternion.Euler(0, Random.Range(0.0f, 360.0f), 0);
-    }
+    //public void AddDeliveryCount()
+    //{
+    //    deliveryCount++;
+    //}
+
+    ///// <summary>
+    ///// Use the ground's bounds to pick a random spawn position.
+    ///// </summary>
+    //public Vector3 GetRandomSpawnPos()
+    //{
+    //    return Vector3.zero;
+    //}
+    //Quaternion GetRandomRot()
+    //{
+    //    return Quaternion.Euler(0, Random.Range(0.0f, 360.0f), 0);
+    //}
 
     void ResetScene()
     {
+        levelGeneration = GetComponentInChildren<LevelGeneration>();
 
-        //Reset counter
-        m_ResetTimer = 0;
-
-        //Random hospital layout
-
-        //Reset Agents
-        foreach (var item in AgentsList)
+        // Remove all game objects that are children of the level generation object
+        foreach (Transform child in levelGeneration.transform)
         {
-            var pos = UseRandomAgentPosition ? GetRandomSpawnPos() : item.StartingPos;
-            var rot = UseRandomAgentRotation ? GetRandomRot() : item.StartingRot;
-
-            item.Agent.transform.SetPositionAndRotation(pos, rot);
-            item.Rb.velocity = Vector3.zero;
-            item.Rb.angularVelocity = Vector3.zero;
-            item.Agent.MyInstrument.SetActive(false);
-            item.Agent.IHaveAnInstrument = false;
-            item.Agent.gameObject.SetActive(true);
-            m_AgentGroup.RegisterAgent(item.Agent);
+            Destroy(child.gameObject);
         }
 
-        //Reset Key
-        Key.SetActive(false);
+        if (levelGeneration.numberOfRooms >= (levelGeneration.worldSize.x * 2) * (levelGeneration.worldSize.y * 2))
+        { // make sure we dont try to make more rooms than can fit in our grid
+            levelGeneration.numberOfRooms = Mathf.RoundToInt((levelGeneration.worldSize.x * 2) * (levelGeneration.worldSize.y * 2));
+        }
+        levelGeneration.gridSizeX = Mathf.RoundToInt(levelGeneration.worldSize.x); //note: these are half-extents
+        levelGeneration.gridSizeY = Mathf.RoundToInt(levelGeneration.worldSize.y);
+        levelGeneration.CreateRooms(); //lays out the actual map
+        levelGeneration.SetRoomDoors(); //assigns the doors where rooms would connect
+        levelGeneration.DrawMap(); //instantiates objects to make up a map
+        GetComponentInChildren<SheetAssigner>().Assign(levelGeneration.rooms, levelGeneration.takenPositions); //passes room info to another script which handles generatating the level geometry
+
+
+
+        // Spawn agents on random rooms
+        positionsTakenByAgents = new List<Vector2>();
+
+        AmrAgent singleAgent = FindObjectOfType<AmrAgent>();
+        SpawnOnRandomRoom(singleAgent, levelGeneration.takenPositions);
+        //foreach (var agent in AgentsList)
+        //{
+        //    SpawnOnRandomRoom(agent.Agent.gameObject, levelGeneration.takenPositions);
+        //}
+
+
+        //    //Reset counter
+        //    m_ResetTimer = 0;
+
+        //    //Random hospital layout
+
+        //    //Reset Agents
+        //    foreach (var item in AgentsList)
+        //    {
+        //        var pos = UseRandomAgentPosition ? GetRandomSpawnPos() : item.StartingPos;
+        //        var rot = UseRandomAgentRotation ? GetRandomRot() : item.StartingRot;
+
+        //        item.Agent.transform.SetPositionAndRotation(pos, rot);
+        //        item.Rb.velocity = Vector3.zero;
+        //        item.Rb.angularVelocity = Vector3.zero;
+        //        item.Agent.MyInstrument.SetActive(false);
+        //        item.Agent.IHaveAnInstrument = false;
+        //        item.Agent.gameObject.SetActive(true);
+        //        m_AgentGroup.RegisterAgent(item.Agent);
+        //    }
+
+        //    //Reset Key
+        //    Key.SetActive(false);
+    }
+
+    private void SpawnOnRandomRoom(AmrAgent gameObject, List<Vector2> takenPositions)
+    {
+        // Get of function if takenPositions is null
+        if (takenPositions == null)
+        {
+            return;
+        }
+
+        Vector2 spawnPos = Vector2.zero;
+
+        // Get a random room that is not taken by an agent
+        do
+        {
+            int x = 0, y = 0;
+            int index = Mathf.RoundToInt(Random.value * (takenPositions.Count - 1)); // pick a random room
+            x = (int)takenPositions[index].x;//capture its x, y position
+            y = (int)takenPositions[index].y;
+            spawnPos = new Vector2(x, y);
+        } while (positionsTakenByAgents.Contains(spawnPos));
+
+        // Spawn the agent on the room
+        //TODO: Forma que spawna está errada, pois está relativa ao taken position e não ao 3D. Tenho que ver como fazer para o caso geral, evitando obstáculos também
+        gameObject.transform.position = new Vector3(spawnPos.x, 0, spawnPos.y);
     }
 }
