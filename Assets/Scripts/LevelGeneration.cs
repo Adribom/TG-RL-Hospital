@@ -27,12 +27,14 @@ public class LevelGeneration : MonoBehaviour
             takenPositions.Clear();
         }
         takenPositions.Insert(0, Vector2.zero);
+        string roomTag = "";
         Vector2 checkPos = Vector2.zero;
         // The higher the randomCompare, the more likely the room will branch out
         float randomCompare = 0.2f, randomCompareStart = 0.7f, randomCompareEnd = 0.5f;
         //add rooms
         for (int i = 0; i < numberOfRooms - 1; i++)
         {
+            roomTag = "";
             // With more rooms, the lower the randonPerc, wich makes randomCompare higher, the less likely to enter the if statement.
             // Not entering the SelectiveNewPosition() method means that the room will not branch out.
             float randomPerc = ((float)i) / (((float)numberOfRooms - 1));
@@ -41,9 +43,16 @@ public class LevelGeneration : MonoBehaviour
 
             //grab new position
             checkPos = NewPosition();
-            //test new position
+
             // If its a case where the room has more than one neighbor, we want to make it more likely to branch out based on the randomCompare
-            if (((float)i) / ((float)numberOfRooms - 1) > 0.7f)
+
+            // If the room is the last one, make it tag 3 (SPDs)
+            if (((float)i) == numberOfRooms - 2)
+            {
+                checkPos = LonelyNewPosition();
+                roomTag = "SPD";
+            }
+            else if (((float)i) / ((float)numberOfRooms - 1) > 0.7f)
             {
                 checkPos = LonelyNewPosition();
             }
@@ -60,10 +69,14 @@ public class LevelGeneration : MonoBehaviour
                     print("error: could not create with fewer neighbors than : " + NumberOfNeighbors(checkPos, takenPositions));
             }
             //finalize position
-            rooms[(int)checkPos.x + gridSizeX, (int)checkPos.y + gridSizeY] = new Room(checkPos, 0);
-            //Debug.Log("checkPos.x: " + (int)checkPos.x + "  gridSizeX: " + gridSizeX);
-            //Debug.Log("checkPos.y: " + (int)checkPos.y + "  gridSizeY: " + gridSizeY);
-            //Debug.Log("---");
+            if (roomTag == "SPD")
+            {
+                rooms[(int)checkPos.x + gridSizeX, (int)checkPos.y + gridSizeY] = new Room(checkPos, 3);
+            }
+            else
+            {
+                rooms[(int)checkPos.x + gridSizeX, (int)checkPos.y + gridSizeY] = new Room(checkPos, 0);
+            }
             takenPositions.Insert(0, checkPos);
         }
 

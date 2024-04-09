@@ -10,6 +10,6 @@ public class Room
     public Room(Vector2 _gridPos, int _type)
     {
         gridPos = _gridPos;
-        type = _type; // 0: normal, 1: center room
+        type = _type; // 0: normal, 1: center room, 2: ORs, 3: SPDs
     }
 }

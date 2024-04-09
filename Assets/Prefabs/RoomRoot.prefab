@@ -118,3 +118,10 @@ MonoBehaviour:
     prefab: {fileID: 1348133729177994, guid: 521da3125b98d5540aba6b220edf09f0, type: 3}
   - color: {r: 1, g: 0, b: 0, a: 1}
     prefab: {fileID: 1348133729177994, guid: 5a26c83b0f6cccf4d830c2237a2ccab9, type: 3}
+  - color: {r: 1, g: 1, b: 0, a: 1}
+    prefab: {fileID: 9005806533492663085, guid: ca5b6721313f40444a3cda6edf81af15,
+      type: 3}
+  - color: {r: 1, g: 0, b: 1, a: 1}
+    prefab: {fileID: 5226585261653664267, guid: becb00cc3d58aa7488e89dce687086d7,
+      type: 3}
+  tileSize: 16

@@ -14,7 +14,7 @@ public class RoomInstance : MonoBehaviour
     GameObject doorU, doorD, doorL, doorR, doorWall;
     [SerializeField]
     ColorToGameObject[] mappings;
-    float tileSize = 16;
+    public float tileSize = 16;
     Vector2 roomSizeInTiles = new Vector2(9, 17); // Vector2(x, y), where x is the width and y is the height of the room
     public void Setup(Texture2D _tex, Vector2 _gridPos, int _type, bool _doorTop, bool _doorBot, bool _doorLeft, bool _doorRight, int numNeighbors)
     {
@@ -33,7 +33,6 @@ public class RoomInstance : MonoBehaviour
         {
             MakeDoors();
             GenerateRoomTiles(numNeighbors, type);
-
         }
     }
     void MakeDoors()
@@ -114,7 +113,6 @@ public class RoomInstance : MonoBehaviour
             }
             else
             {
-                //forgot to remove the old print for the tutorial lol so I'll leave it here too
                 //print(mapping.color + ", " + pixelColor);
             }
         }

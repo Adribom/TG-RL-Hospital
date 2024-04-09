@@ -45,7 +45,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f2487c8e817c094bb95b33d77a335b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  worldSize: {x: 6, y: 6}
   takenPositions: []
+  gridSizeX: 0
+  gridSizeY: 0
+  numberOfRooms: 70
   roomWhiteObj: {fileID: 5432577993429369876, guid: d46277194aa98ad4eb06ea470f3749a9,
     type: 3}
   mapRoot: {fileID: 2924712747986704989}
@@ -87,6 +91,8 @@ MonoBehaviour:
   - {fileID: 2800000, guid: 657e8fd045cc9df498173c6a6c850d3c, type: 3}
   sheetsCS:
   - {fileID: 2800000, guid: c46098cbf5344f5428cea150cb99d093, type: 3}
+  sheetsSPD:
+  - {fileID: 2800000, guid: ea8516568a2389249a44d8007d57e9e3, type: 3}
   sheetsCorridor:
   - {fileID: 2800000, guid: 818cf923aa3f40043903296a1a06d7d9, type: 3}
   - {fileID: 2800000, guid: 818cf923aa3f40043903296a1a06d7d9, type: 3}
@@ -95,6 +101,7 @@ MonoBehaviour:
   RoomObj: {fileID: 7935675786286940361, guid: 092b915af527d594aa11083a065a8de8, type: 3}
   roomDimensions: {x: 255, y: 128}
   gutterSize: {x: 0, y: 0}
+  roomTag: 
 --- !u!1 &2575274917780156123
 GameObject:
   m_ObjectHideFlags: 0
@@ -312,9 +319,9 @@ MonoBehaviour:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
   MaxStep: 0
-  MyInstrument: {fileID: 0}
-  IHaveAnInstrument: 0
-  Target: {fileID: 0}
+  layerForAgentSpawnDetection:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!114 &4415052470423628846
 MonoBehaviour:
   m_ObjectHideFlags: 0
