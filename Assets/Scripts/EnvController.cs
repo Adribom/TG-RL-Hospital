@@ -158,11 +158,12 @@ public class EnvController : MonoBehaviour
         //    );
         //}
 
-        //GeneratePickupAndDeliveryPoints(
-        //    levelGeneration.rooms,
-        //    levelGeneration.takenPositions,
-        //    AgentsList.Count
-        //    );
+        GeneratePickupAndDeliveryPoints(
+            levelGeneration.rooms,
+            levelGeneration.takenPositions,
+            1
+            //AgentsList.Count
+            );
 
         //    //Reset counter
         //    m_ResetTimer = 0;
@@ -311,26 +312,26 @@ public class EnvController : MonoBehaviour
         ActivateOnePointInRangeWithTag(selectedPickupRooms, "PickupPoint");
 
         //Create pair list of activated pickup and delivery points, eg. (pickup1, delivery1), (pickup2, delivery2), ...
-        List<(GameObject, GameObject)> pickupDeliveryPairs = new List<(GameObject, GameObject)>();
-        int index = 0;
-        foreach (var room in selectedDeliveryRooms)
-        {
-            Transform[] deliveryPoints = room.GetComponentsInChildren<Transform>();
-            foreach (var deliveryPoint in deliveryPoints)
-            {
-                if (deliveryPoint.gameObject.tag == "DeliveryPoint")
-                {
-                    Transform[] pickupPoints = room.GetComponentsInChildren<Transform>();
-                    foreach (var pickupPoint in pickupPoints)
-                    {
-                        if (pickupPoint.gameObject.tag == "PickupPoint")
-                        {
-                            pickupDeliveryPairs.Add((pickupPoint.gameObject, deliveryPoint.gameObject));
-                        }
-                    }
-                }
-            }
-        }
+        //List<(GameObject, GameObject)> pickupDeliveryPairs = new List<(GameObject, GameObject)>();
+        //int index = 0;
+        //foreach (var room in selectedDeliveryRooms)
+        //{
+        //    Transform[] deliveryPoints = room.GetComponentsInChildren<Transform>();
+        //    foreach (var deliveryPoint in deliveryPoints)
+        //    {
+        //        if (deliveryPoint.gameObject.tag == "DeliveryPoint")
+        //        {
+        //            Transform[] pickupPoints = room.GetComponentsInChildren<Transform>();
+        //            foreach (var pickupPoint in pickupPoints)
+        //            {
+        //                if (pickupPoint.gameObject.tag == "PickupPoint")
+        //                {
+        //                    pickupDeliveryPairs.Add((pickupPoint.gameObject, deliveryPoint.gameObject));
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
 
     }
 
@@ -345,25 +346,27 @@ public class EnvController : MonoBehaviour
         return selectedRooms;
     }
 
-    private void ActivateOnePointInRangeWithTag(List<GameObject> SelectedRooms, string tag)
+    private void ActivateOnePointInRangeWithTag(List<GameObject> selectedRooms, string tag)
     {
-        foreach (var roomRoot in SelectedRooms)
+        foreach (GameObject roomRoot in selectedRooms)
         {
-            // Get all points of interest in the room
-            Transform[] pointsOfInterest = roomRoot.GetComponentsInChildren<Transform>();
+            // Get the children of roomRoot
+            //Transform[] childrenOfRoomRoot = roomRoot.GetComponentsInChildren<Transform>();
+            //Debug.Log("Children of roomRoot: " + childrenOfRoomRoot.Length);
+            //Debug.Log("roomRoot: " + roomRoot.transform.position);
 
-            // Deactivate all points of interest
-            foreach (var Point in pointsOfInterest)
+            // Activate one point of interest with the tag
+            foreach (Transform child in roomRoot.transform)
             {
-                if (Point.gameObject.tag == tag)
+                if (child.gameObject.tag == tag)
                 {
-                    Point.gameObject.SetActive(false);
+                    child.gameObject.SetActive(true);
+                    goto outerLoop;
                 }
             }
-
-            // Activate one point
-            int randomIndex = Random.Range(0, pointsOfInterest.Length);
-            pointsOfInterest[randomIndex].gameObject.SetActive(true);
+            outerLoop:;
         }
     }
+
+
 }

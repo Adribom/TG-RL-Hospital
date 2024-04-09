@@ -110,6 +110,12 @@ public class RoomInstance : MonoBehaviour
                 // Debug.Log(mapping.color + ", " + pixelColor);   
                 Vector3 spawnPos = positionFromTileGrid(x, y);
                 Instantiate(mapping.prefab, spawnPos, Quaternion.identity).transform.parent = this.transform;
+                
+                // For delivery points (purple) and pickup points (yellow), set the gameObject as deactivated
+                if (mapping.prefab.tag == "DeliveryPoint" || mapping.prefab.tag == "PickupPoint")
+                {
+                    mapping.prefab.SetActive(false);
+                }
             }
             else
             {
