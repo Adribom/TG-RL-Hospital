@@ -10,8 +10,6 @@ using UnityEngine.UIElements;
 public class EnvController : MonoBehaviour
 {
     private LevelGeneration levelGeneration;
-    private SheetAssigner sheetAssigner;
-
     public class PlayerInfo
     {
         //public AmrAgent Agent;
@@ -33,21 +31,21 @@ public class EnvController : MonoBehaviour
     private int m_ResetTimer;
 
     public List<PlayerInfo> AgentsList = new List<PlayerInfo>();
-    private List<Vector2> positionsTakenByAgents = new List<Vector2>();
 
     private Dictionary<AmrAgent, PlayerInfo> m_PlayerDict = new Dictionary<AmrAgent, PlayerInfo>();
-    public bool UseRandomAgentRotation = true;
-    public bool UseRandomAgentPosition = true;
 
-    public LayerMask layerForAgentSpawnDetection;
+    [SerializeField]
+    private static int pairSphereRadius = 5;
+    public static LayerMask layerForAgentSpawnDetection;
     public GameObject Key;
-    private SimpleMultiAgentGroup m_AgentGroup;
-    private int deliveryCount = 0;
-    private int totalDeliveriesToReset = 10;
+    // private SimpleMultiAgentGroup m_AgentGroup;
+    // private int deliveryCount = 0;
+    // private int totalDeliveriesToReset = 10;
 
     //Start is called before the first frame update
     void Start()
     {
+        // deliveryCount = 0;
         //Hide The Key
         //Key.SetActive(false);
 
@@ -65,8 +63,8 @@ public class EnvController : MonoBehaviour
         ResetScene();
     }
 
-    //Update is called once per frame
-    void Update()
+
+    void FixedUpdate()
     {
         //m_ResetTimer += 1;
         //if (m_ResetTimer >= MaxEnvironmentSteps && MaxEnvironmentSteps > 0)
@@ -74,15 +72,38 @@ public class EnvController : MonoBehaviour
         //    m_AgentGroup.GroupEpisodeInterrupted();
         //    ResetScene();
         //}
-
-
         if (Input.GetKeyDown(KeyCode.Q))
         {
             ResetScene();
         }
 
+        if (Input.GetKeyDown(KeyCode.Y))
+        {
+            StartCoroutine(DestroyAllRooms(1f));
+            ResetScene();
+        }
+        if (Input.GetKey(KeyCode.T))
+        {
+            LevelGeneration levelGeneration = GetComponentInChildren<LevelGeneration>();
+            // Destroy all children of the level generation object
+            foreach (Transform child in levelGeneration.transform)
+            {
+                Destroy(child.gameObject);
+            }
+        }
+
     }
 
+    IEnumerator DestroyAllRooms(float time)
+    {
+        LevelGeneration levelGeneration = GetComponentInChildren<LevelGeneration>();
+        // Destroy all children of the level generation object
+        foreach (Transform child in levelGeneration.transform)
+        {
+            Destroy(child.gameObject);
+        }
+        yield return new WaitForSeconds(time); 
+    }
     
     //public void ManageSucessfullDelivery()
     //{
@@ -114,14 +135,17 @@ public class EnvController : MonoBehaviour
 
     void ResetScene()
     {
-        levelGeneration = GetComponentInChildren<LevelGeneration>();
-        sheetAssigner =  GetComponentInChildren<SheetAssigner>();
-
-        // Remove all game objects that are children of the level generation object
-        foreach (Transform child in levelGeneration.transform)
+        // Get the LevelGeneration and SheetAssigner components
+        LevelGeneration levelGeneration = GetComponentInChildren<LevelGeneration>();
+        // Exit function if levelGeneration contains children
+        if (levelGeneration.transform.childCount > 0)
         {
-            Destroy(child.gameObject);
+            return;
         }
+        SheetAssigner sheetAssigner = GetComponentInChildren<SheetAssigner>();
+
+        // Reset levelGeneration and remove all game objects that are children of the level generation object
+        levelGeneration.Reset();
 
         if (levelGeneration.numberOfRooms >= (levelGeneration.worldSize.x * 2) * (levelGeneration.worldSize.y * 2))
         { // make sure we dont try to make more rooms than can fit in our grid
@@ -135,8 +159,7 @@ public class EnvController : MonoBehaviour
         sheetAssigner.Assign(levelGeneration.rooms, levelGeneration.takenPositions); //passes room info to another script which handles generatating the level geometry
 
         // Spawn agents on random rooms
-        // Reset positionsTakenByAgents
-        positionsTakenByAgents = new List<Vector2>();
+        List<Vector2> positionsTakenByAgents = new List<Vector2>();
 
         AmrAgent singleAgent = FindObjectOfType<AmrAgent>();
         SpawnOnRandomRoom(
@@ -144,6 +167,7 @@ public class EnvController : MonoBehaviour
             levelGeneration.takenPositions, 
             sheetAssigner.roomDimensions,
             sheetAssigner.gutterSize,
+            sheetAssigner.transform.position,
             positionsTakenByAgents
             );
 
@@ -190,7 +214,7 @@ public class EnvController : MonoBehaviour
     }
 
 
-    private void SpawnOnRandomRoom(AmrAgent gameObject, List<Vector2> takenPositions, Vector2 roomDimensions, Vector2 gutterSize, List<Vector2> positionsTakenByAgents)
+    private void SpawnOnRandomRoom(AmrAgent gameObject, List<Vector2> takenPositions, Vector2 roomDimensions, Vector2 gutterSize, Vector3 rootPosition, List<Vector2> positionsTakenByAgents)
     {
         // Get out of function if takenPositions is null
         if (takenPositions == null)
@@ -214,7 +238,7 @@ public class EnvController : MonoBehaviour
         positionsTakenByAgents.Add(spawnPos);
 
         // Fix coordinates to be in the center of the room
-        Vector3 agentSpawnPosition = new Vector3(spawnPos.x * (roomDimensions.x + gutterSize.x), (sheetAssigner.transform.position.y + (gameObject.transform.localScale.y / 2)), spawnPos.y * (roomDimensions.y + gutterSize.y));
+        Vector3 agentSpawnPosition = new Vector3(spawnPos.x * (roomDimensions.x + gutterSize.x), (rootPosition.y + (gameObject.transform.localScale.y / 2)), spawnPos.y * (roomDimensions.y + gutterSize.y));
 
         // Spawn the agent on the room based on the room's position with random rotation
         gameObject.gameObject.transform.position = agentSpawnPosition;
@@ -276,64 +300,63 @@ public class EnvController : MonoBehaviour
             return;
         }
 
-        // Get all rooms that have type 2 (OR)
-        List<Room> roomsWithORType = new List<Room>();
-        foreach (var room in rooms)
-        {
-            if (room != null && room.type == 2)
-            {
-                roomsWithORType.Add(room);
-            }
-        }
-
         // Max amount of delivery points
         int maxDeliveryPoints = numberOfAgents + 2;
 
-
         // Get all RoomRoot objects that are children of the level generation object and have the tag "OR" and tag "SPD"
+        // TODO: Verificar o pq que há lixo dentro dos points
         GameObject[] roomRootsOR = GameObject.FindGameObjectsWithTag("OR");
-        GameObject roomRootCS = GameObject.FindGameObjectWithTag("CS"); 
+        GameObject roomRootCS = GameObject.FindGameObjectWithTag("CS");
         GameObject roomRootSPD = GameObject.FindGameObjectWithTag("SPD");
 
         // Randomly select the rooms that will have the delivery points
-        List<GameObject> selectedDeliveryRooms = RandomlySelectRooms(maxDeliveryPoints, roomRootsOR);
+        List<GameObject> selectedDeliveryRooms = new List<GameObject>();
+        selectedDeliveryRooms = RandomlySelectRooms(maxDeliveryPoints, roomRootsOR);
         // Last delivery point is in the SPD
         selectedDeliveryRooms.Add(roomRootSPD);
+        //Debug.Log("Number of Delivery Rooms: " + selectedDeliveryRooms.Count);
 
         //Randomly select the rooms that will have the pickup points
-        List<GameObject> selectedPickupRooms = RandomlySelectRooms(maxDeliveryPoints, roomRootsOR);
+        List<GameObject> selectedPickupRooms = new List<GameObject>();
+        selectedPickupRooms = RandomlySelectRooms(maxDeliveryPoints, roomRootsOR);
         // Last pickup point is in the CS
         selectedPickupRooms.Add(roomRootCS);
+        //Debug.Log("Number of Pickup Rooms: " + selectedPickupRooms.Count);
 
         // For each selected OR room, deactivate all delivery points and activate one
-        ActivateOnePointInRangeWithTag(selectedDeliveryRooms, "DeliveryPoint");
+        List<GameObject> activatedDeliveryPoints = new List<GameObject>();
+        activatedDeliveryPoints = ActivateOnePointInRangeWithTag(selectedDeliveryRooms, "DeliveryPoint");
+
+        // Check if all delivery points are activated
+        for (int i = 0; i < activatedDeliveryPoints.Count; i++)
+        {
+            activatedDeliveryPoints[i].SetActive(true);
+        }
 
         // For each selected OR room, deactivate all pickup points and activate one
-        ActivateOnePointInRangeWithTag(selectedPickupRooms, "PickupPoint");
+        List<GameObject> activatedPickupPoints = new List<GameObject>();
+        activatedPickupPoints = ActivateOnePointInRangeWithTag(selectedPickupRooms, "PickupPoint");
+
+        // Check if all pickup points are activated
+        for (int i = 0; i < activatedPickupPoints.Count; i++)
+        {
+            activatedPickupPoints[i].SetActive(true);
+        }
 
         //Create pair list of activated pickup and delivery points, eg. (pickup1, delivery1), (pickup2, delivery2), ...
-        //List<(GameObject, GameObject)> pickupDeliveryPairs = new List<(GameObject, GameObject)>();
-        //int index = 0;
-        //foreach (var room in selectedDeliveryRooms)
-        //{
-        //    Transform[] deliveryPoints = room.GetComponentsInChildren<Transform>();
-        //    foreach (var deliveryPoint in deliveryPoints)
-        //    {
-        //        if (deliveryPoint.gameObject.tag == "DeliveryPoint")
-        //        {
-        //            Transform[] pickupPoints = room.GetComponentsInChildren<Transform>();
-        //            foreach (var pickupPoint in pickupPoints)
-        //            {
-        //                if (pickupPoint.gameObject.tag == "PickupPoint")
-        //                {
-        //                    pickupDeliveryPairs.Add((pickupPoint.gameObject, deliveryPoint.gameObject));
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
+        List<(GameObject, GameObject)> pickupDeliveryPairs = new List<(GameObject, GameObject)>();
+        for (int i = 0; i < activatedPickupPoints.Count; i++)
+        {
+            pickupDeliveryPairs.Add((activatedPickupPoints[i], activatedDeliveryPoints[i]));
+        }
+
+        //Debug.Log("Number of Pickup-Delivery Pairs: " + pickupDeliveryPairs.Count);
+
+        // Generate a id for each pair based on the color of the prefab 
+        ColourSamePairs(pickupDeliveryPairs, pairSphereRadius);
 
     }
+
 
     private List<GameObject> RandomlySelectRooms(int numberOfRooms, GameObject[] roomRoots)
     {
@@ -346,27 +369,62 @@ public class EnvController : MonoBehaviour
         return selectedRooms;
     }
 
-    private void ActivateOnePointInRangeWithTag(List<GameObject> selectedRooms, string tag)
+    private List<GameObject> ActivateOnePointInRangeWithTag(List<GameObject> selectedRooms, string tag)
     {
+        List<GameObject> activatedPoints = new List<GameObject>();
         foreach (GameObject roomRoot in selectedRooms)
         {
-            // Get the children of roomRoot
-            //Transform[] childrenOfRoomRoot = roomRoot.GetComponentsInChildren<Transform>();
-            //Debug.Log("Children of roomRoot: " + childrenOfRoomRoot.Length);
-            //Debug.Log("roomRoot: " + roomRoot.transform.position);
-
             // Activate one point of interest with the tag
             foreach (Transform child in roomRoot.transform)
             {
                 if (child.gameObject.tag == tag)
                 {
                     child.gameObject.SetActive(true);
+                    // print parent location
+                    //Debug.Log("Activated child " + child.gameObject.activeInHierarchy + " point in room: " + roomRoot.transform.position);
+                    activatedPoints.Add(child.gameObject);
                     goto outerLoop;
                 }
             }
             outerLoop:;
         }
+        return activatedPoints;
     }
 
+    private void ColourSamePairs(List<(GameObject, GameObject)> pickupDeliveryPairs, int pairSphereRadius)
+    {
+        // Iterate over the pairs and assign a color to each pair
+        for (int i = 0; i < pickupDeliveryPairs.Count; i++)
+        {
+            // Get the pair
+            (GameObject pickup, GameObject delivery) = pickupDeliveryPairs[i];
+
+            // Create a floating sphere that will represent the color of the pair
+            GameObject sphereDelivery = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            sphereDelivery.transform.parent = delivery.transform;
+            sphereDelivery.transform.localScale = new Vector3(pairSphereRadius, pairSphereRadius, pairSphereRadius);
+            sphereDelivery.transform.position = new Vector3(
+                delivery.transform.position.x,
+                delivery.transform.position.y + 23,
+                delivery.transform.position.z
+                );
+            Debug.Log("Delivery position: " + delivery.transform.position);
+
+            GameObject spherePickup = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            spherePickup.transform.parent = pickup.transform;
+            spherePickup.transform.localScale = new Vector3(pairSphereRadius, pairSphereRadius, pairSphereRadius);
+            spherePickup.transform.position = new Vector3(
+                pickup.transform.position.x,
+                pickup.transform.position.y + 23,
+                pickup.transform.position.z
+                );
+            Debug.Log("Pickup position: " + pickup.transform.position);
+
+            // Assign the same color to the pickup and delivery spheres
+            Color color = Random.ColorHSV();
+            sphereDelivery.GetComponent<Renderer>().material.color = color;
+            spherePickup.GetComponent<Renderer>().material.color = color;
+        }
+    }
 
 }

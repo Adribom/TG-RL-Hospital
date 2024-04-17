@@ -15,6 +15,19 @@ public class LevelGeneration : MonoBehaviour
     public int gridSizeX, gridSizeY, numberOfRooms = 70;
     public GameObject roomWhiteObj;
     public Transform mapRoot;
+
+    public void Reset()
+    {
+        // Clear the map
+        foreach (Transform child in mapRoot)
+        {
+            Destroy(child.gameObject);
+        }
+        // Clear the list of taken positions
+        takenPositions.Clear();
+        // Clear the array of rooms
+        rooms = null;
+    }
     public void CreateRooms()
     {
         //setup

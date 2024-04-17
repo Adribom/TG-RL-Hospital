@@ -144,6 +144,7 @@ MonoBehaviour:
   MaxEnvironmentSteps: 25000
   UseRandomAgentRotation: 1
   UseRandomAgentPosition: 1
+  pairSphereRadius: 45
   layerForAgentSpawnDetection:
     serializedVersion: 2
     m_Bits: 8

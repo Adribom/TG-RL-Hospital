@@ -75,6 +75,7 @@ public class RoomInstance : MonoBehaviour
         int width = tex.width;
         int height = tex.height;
 
+
         //if the room has 4 neighbors, don't consider the pixels on the edges.
         //This creates a room without walls or doors, only with obstacles
         if (numNeighbors == 4 && type == 0)
@@ -102,24 +103,21 @@ public class RoomInstance : MonoBehaviour
         {
             return;
         }
-        //find the color to math the pixel
+        //find the color to match the pixel
         foreach (ColorToGameObject mapping in mappings)
         {
             if (mapping.color.Equals(pixelColor))
             {
                 // Debug.Log(mapping.color + ", " + pixelColor);   
                 Vector3 spawnPos = positionFromTileGrid(x, y);
-                Instantiate(mapping.prefab, spawnPos, Quaternion.identity).transform.parent = this.transform;
-                
+                GameObject obj = Instantiate(mapping.prefab, spawnPos, Quaternion.identity);
+                obj.transform.parent = this.transform;
+
                 // For delivery points (purple) and pickup points (yellow), set the gameObject as deactivated
-                if (mapping.prefab.tag == "DeliveryPoint" || mapping.prefab.tag == "PickupPoint")
+                if (obj.CompareTag("DeliveryPoint") || obj.CompareTag("PickupPoint"))
                 {
-                    mapping.prefab.SetActive(false);
+                    obj.SetActive(false);
                 }
-            }
-            else
-            {
-                //print(mapping.color + ", " + pixelColor);
             }
         }
     }
