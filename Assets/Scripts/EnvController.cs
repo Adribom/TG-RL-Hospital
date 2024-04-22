@@ -9,7 +9,6 @@ using UnityEngine.UIElements;
 
 public class EnvController : MonoBehaviour
 {
-    private LevelGeneration levelGeneration;
     public class PlayerInfo
     {
         //public AmrAgent Agent;
@@ -28,6 +27,7 @@ public class EnvController : MonoBehaviour
     /// </summary>
     /// <returns></returns>
     [Header("Max Environment Steps")] public int MaxEnvironmentSteps = 25000;
+    private float hospitalSize = 2.0f; // Small Hospital
     private int m_ResetTimer;
 
     public List<PlayerInfo> AgentsList = new List<PlayerInfo>();
@@ -35,17 +35,17 @@ public class EnvController : MonoBehaviour
     private Dictionary<AmrAgent, PlayerInfo> m_PlayerDict = new Dictionary<AmrAgent, PlayerInfo>();
 
     [SerializeField]
-    private static int pairSphereRadius = 5;
+    private static float pairSphereRadius = .5f;
     public static LayerMask layerForAgentSpawnDetection;
-    public GameObject Key;
+    //public GameObject Key;
     // private SimpleMultiAgentGroup m_AgentGroup;
-    // private int deliveryCount = 0;
-    // private int totalDeliveriesToReset = 10;
+    private int successfullDeliveries = 0;
+    private int maxDeliveryPoints;
 
     //Start is called before the first frame update
     void Start()
     {
-        // deliveryCount = 0;
+        // successfullDeliveries = 0;
         //Hide The Key
         //Key.SetActive(false);
 
@@ -104,17 +104,23 @@ public class EnvController : MonoBehaviour
         }
         yield return new WaitForSeconds(time); 
     }
-    
-    //public void ManageSucessfullDelivery()
-    //{
-    //    print("Surgical instrument delivered!");
-    //    m_AgentGroup.AddGroupReward(1f);
 
-    //    if (deliveryCount == totalDeliveriesToReset)
-    //        m_AgentGroup.EndGroupEpisode();
+    public void CompleteDelivery()
+    {
+        print("Surgical instrument delivered!");
+        //m_AgentGroup.AddGroupReward(1f);
 
-    //    ResetScene();
-    //}
+        if (successfullDeliveries == maxDeliveryPoints) 
+        {
+            successfullDeliveries = 0;
+            //m_AgentGroup.EndGroupEpisode();
+            ResetScene();
+        }
+        else
+        {
+            successfullDeliveries++;
+        }
+    }
 
     //public void AddDeliveryCount()
     //{
@@ -137,15 +143,21 @@ public class EnvController : MonoBehaviour
     {
         // Get the LevelGeneration and SheetAssigner components
         LevelGeneration levelGeneration = GetComponentInChildren<LevelGeneration>();
+        
         // Exit function if levelGeneration contains children
         if (levelGeneration.transform.childCount > 0)
         {
             return;
         }
-        SheetAssigner sheetAssigner = GetComponentInChildren<SheetAssigner>();
 
         // Reset levelGeneration and remove all game objects that are children of the level generation object
         levelGeneration.Reset();
+
+        //Set world size variables
+        levelGeneration.setWorldSize(hospitalSize);
+        // levelGeneration.setWorldSize(Academy.Instance.EnvironmentParameters.GetWithDefault("HospitalSize", hospitalSize));
+
+        SheetAssigner sheetAssigner = GetComponentInChildren<SheetAssigner>();
 
         if (levelGeneration.numberOfRooms >= (levelGeneration.worldSize.x * 2) * (levelGeneration.worldSize.y * 2))
         { // make sure we dont try to make more rooms than can fit in our grid
@@ -294,14 +306,18 @@ public class EnvController : MonoBehaviour
 
     private void GeneratePickupAndDeliveryPoints(Room[,] rooms, List<Vector2> takenPositions, int numberOfAgents)
     {
-        // Get out of function if takenPositions is null
+        // Max amount of delivery points
+        maxDeliveryPoints = numberOfAgents + 2;
+
+        // Get out of function if takenPositions is doesn't have enough rooms
         if (takenPositions == null)
         {
             return;
         }
-
-        // Max amount of delivery points
-        int maxDeliveryPoints = numberOfAgents + 2;
+        else if (takenPositions.Count < maxDeliveryPoints)
+        {
+            maxDeliveryPoints = takenPositions.Count;
+        }
 
         // Get all RoomRoot objects that are children of the level generation object and have the tag "OR" and tag "SPD"
         // TODO: Verificar o pq que há lixo dentro dos points
@@ -311,14 +327,20 @@ public class EnvController : MonoBehaviour
 
         // Randomly select the rooms that will have the delivery points
         List<GameObject> selectedDeliveryRooms = new List<GameObject>();
-        selectedDeliveryRooms = RandomlySelectRooms(maxDeliveryPoints, roomRootsOR);
+        if (roomRootsOR.Length > 0)
+        {
+            selectedDeliveryRooms = RandomlySelectRooms(maxDeliveryPoints, roomRootsOR);
+        }
         // Last delivery point is in the SPD
         selectedDeliveryRooms.Add(roomRootSPD);
         //Debug.Log("Number of Delivery Rooms: " + selectedDeliveryRooms.Count);
 
         //Randomly select the rooms that will have the pickup points
         List<GameObject> selectedPickupRooms = new List<GameObject>();
-        selectedPickupRooms = RandomlySelectRooms(maxDeliveryPoints, roomRootsOR);
+        if (roomRootsOR.Length > 0)
+        {
+            selectedPickupRooms = RandomlySelectRooms(maxDeliveryPoints, roomRootsOR);
+        }
         // Last pickup point is in the CS
         selectedPickupRooms.Add(roomRootCS);
         //Debug.Log("Number of Pickup Rooms: " + selectedPickupRooms.Count);
@@ -345,9 +367,11 @@ public class EnvController : MonoBehaviour
 
         //Create pair list of activated pickup and delivery points, eg. (pickup1, delivery1), (pickup2, delivery2), ...
         List<(GameObject, GameObject)> pickupDeliveryPairs = new List<(GameObject, GameObject)>();
+        int backwardIndex;
         for (int i = 0; i < activatedPickupPoints.Count; i++)
         {
-            pickupDeliveryPairs.Add((activatedPickupPoints[i], activatedDeliveryPoints[i]));
+            backwardIndex = activatedDeliveryPoints.Count - 1 - i;
+            pickupDeliveryPairs.Add((activatedPickupPoints[i], activatedDeliveryPoints[backwardIndex]));
         }
 
         //Debug.Log("Number of Pickup-Delivery Pairs: " + pickupDeliveryPairs.Count);
@@ -391,7 +415,7 @@ public class EnvController : MonoBehaviour
         return activatedPoints;
     }
 
-    private void ColourSamePairs(List<(GameObject, GameObject)> pickupDeliveryPairs, int pairSphereRadius)
+    private void ColourSamePairs(List<(GameObject, GameObject)> pickupDeliveryPairs, float pairSphereRadius)
     {
         // Iterate over the pairs and assign a color to each pair
         for (int i = 0; i < pickupDeliveryPairs.Count; i++)
@@ -401,21 +425,23 @@ public class EnvController : MonoBehaviour
 
             // Create a floating sphere that will represent the color of the pair
             GameObject sphereDelivery = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            Destroy(sphereDelivery.GetComponent<SphereCollider>());
             sphereDelivery.transform.parent = delivery.transform;
             sphereDelivery.transform.localScale = new Vector3(pairSphereRadius, pairSphereRadius, pairSphereRadius);
             sphereDelivery.transform.position = new Vector3(
                 delivery.transform.position.x,
-                delivery.transform.position.y + 23,
+                delivery.transform.position.y + 30,
                 delivery.transform.position.z
                 );
             Debug.Log("Delivery position: " + delivery.transform.position);
 
             GameObject spherePickup = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            Destroy(spherePickup.GetComponent<SphereCollider>());
             spherePickup.transform.parent = pickup.transform;
             spherePickup.transform.localScale = new Vector3(pairSphereRadius, pairSphereRadius, pairSphereRadius);
             spherePickup.transform.position = new Vector3(
                 pickup.transform.position.x,
-                pickup.transform.position.y + 23,
+                pickup.transform.position.y + 30,
                 pickup.transform.position.z
                 );
             Debug.Log("Pickup position: " + pickup.transform.position);

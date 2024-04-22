@@ -9,6 +9,7 @@ TagManager:
   - PickupPoint
   - SPD
   - CS
+  - AmrAgent
   layers:
   - Default
   - TransparentFX

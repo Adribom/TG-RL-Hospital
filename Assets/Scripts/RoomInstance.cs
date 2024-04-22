@@ -114,8 +114,14 @@ public class RoomInstance : MonoBehaviour
                 obj.transform.parent = this.transform;
 
                 // For delivery points (purple) and pickup points (yellow), set the gameObject as deactivated
-                if (obj.CompareTag("DeliveryPoint") || obj.CompareTag("PickupPoint"))
+                if (obj.CompareTag("PickupPoint"))
                 {
+                    obj.transform.rotation = Quaternion.Euler(-90, 0, 0); // Pickup point face upwards
+                    obj.SetActive(false);
+                }
+                if (obj.CompareTag("DeliveryPoint"))
+                {
+                    obj.transform.position += new Vector3(0, 0, -8); // Delivery point center offset
                     obj.SetActive(false);
                 }
             }

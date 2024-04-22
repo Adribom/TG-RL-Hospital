@@ -8,9 +8,20 @@ using UnityEngine.Rendering;
 
 public class AmrAgent : Agent
 {
+    private EnvController envController;
     private float collisionRadius = 10f;
+    public GameObject sphereIndicator;
     public LayerMask layerForAgentSpawnDetection;
 
+    public override void Initialize()
+    {
+        envController = GetComponentInParent<EnvController>();
+    }
+
+    public override void OnEpisodeBegin()
+    {
+        ResetSphere();
+    }
     public bool CheckObjectCollision()
     {
         if (Physics.CheckSphere(transform.position, collisionRadius, layerForAgentSpawnDetection))
@@ -34,8 +45,43 @@ public class AmrAgent : Agent
         Gizmos.color = Color.red;
         Gizmos.DrawSphere(transform.position, collisionRadius);
     }
-    //public GameObject MyInstrument; //my instrument gameobject. will be enabled when instrument picked up.
-    //public bool IHaveAnInstrument; //have i picked up a instrument
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.tag == "PickupPoint" && !sphereIndicator.activeSelf)
+        {
+            // If the pickupPoint has a sphere object as a child, check if the color of the sphere is the same as the delivery point
+            Transform sphere = other.transform.Find("Sphere");
+            if (sphere != null)
+            {
+                // Set the color of SphereIndicator to the color of the PickupPoint sphere
+                sphereIndicator.GetComponent<Renderer>().material.color = sphere.GetComponent<Renderer>().material.color;
+                sphereIndicator.SetActive(true);
+            }
+        }
+        if (other.gameObject.tag == "DeliveryPoint")
+        {
+            // If the sphere on the agent is activated and has the same color as the delivery point, the delivery is successful
+            if (sphereIndicator.activeSelf)
+            {
+                Transform otherSphere = other.transform.Find("Sphere");
+                if (otherSphere != null) { 
+                    if (sphereIndicator.GetComponent<Renderer>().material.color == otherSphere.GetComponent<Renderer>().material.color)
+                    {
+                        ResetSphere();
+                        envController.CompleteDelivery();
+                    }
+                }
+            }
+        }
+    }
+
+    private void ResetSphere()
+    {
+        sphereIndicator.GetComponent<Renderer>().material.color = Color.white;
+        sphereIndicator.SetActive(false);
+    }
+
     //[SerializeField] Transform Target;
     //Rigidbody amrAgent;
     //// Start is called before the first frame update

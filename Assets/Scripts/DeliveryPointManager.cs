@@ -4,15 +4,34 @@ using UnityEngine;
 
 public class DeliveryPointManager : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public Color deliverySphereColor;
+
+    private void Start()
     {
-        
+        // Get child component with the name "Sphere"
+        Transform sphere = transform.Find("Sphere");
+        if (sphere != null)
+        {
+            Debug.Log("Sphere found");
+            // Set the color of the sphere object
+            deliverySphereColor = sphere.GetComponent<Renderer>().material.color;
+        }
     }
 
-    // Update is called once per frame
-    void Update()
+    private void OnTriggerEnter(Collider other)
     {
-        
+        if (other.gameObject.tag == "AmrAgent")
+        {
+            // If the agent has a sphere object as a child, check if the color of the sphere is the same as the delivery point
+            Transform sphere = other.transform.Find("SphereIndicator");
+            if (sphere != null)
+            {
+                if (sphere.GetComponent<Renderer>().material.color == deliverySphereColor)
+                {
+                    // Delivery successful, the delivery point is disabled
+                    gameObject.SetActive(false);
+                }
+            }
+        }
     }
 }
