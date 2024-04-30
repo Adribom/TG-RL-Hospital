@@ -16,6 +16,25 @@ public class LevelGeneration : MonoBehaviour
     public GameObject roomWhiteObj;
     public Transform mapRoot;
 
+    public Room[,] GetRooms()
+    {
+        return rooms;
+    }
+
+    public Room GetSingleRoom(int x, int y)
+    {
+        return rooms[x, y];
+    }
+
+    public int GetGridSizeX()
+    {
+        return gridSizeX;
+    }
+
+    public int GetGridSizeY()
+    {
+        return gridSizeY;
+    }
     public void setWorldSize(float worldSize)
     {
         if (worldSize == 1.0f) // Pair Room

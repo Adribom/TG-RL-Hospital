@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 212837628303806704}
   m_Layer: 0
   m_Name: WallTile90
-  m_TagString: Untagged
+  m_TagString: Wall
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -96,6 +96,10 @@ PrefabInstance:
     - target: {fileID: 1779227458762588, guid: b5eb1f40f38fc7a468ca09049bfea380, type: 3}
       propertyPath: m_Name
       value: PTK_Wall_Large_2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1779227458762588, guid: b5eb1f40f38fc7a468ca09049bfea380, type: 3}
+      propertyPath: m_TagString
+      value: Wall
       objectReference: {fileID: 0}
     - target: {fileID: 4483527966447280, guid: b5eb1f40f38fc7a468ca09049bfea380, type: 3}
       propertyPath: m_LocalScale.x

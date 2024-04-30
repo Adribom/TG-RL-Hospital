@@ -37,7 +37,7 @@ public class EnvController : MonoBehaviour
     [SerializeField]
     private static float pairSphereRadius = .5f;
     public static LayerMask layerForAgentSpawnDetection;
-    //public GameObject Key;
+    private List<(GameObject, GameObject)> pickupDeliveryPairs = new List<(GameObject, GameObject)>();
     // private SimpleMultiAgentGroup m_AgentGroup;
     private int successfullDeliveries = 0;
     private int maxDeliveryPoints;
@@ -122,6 +122,10 @@ public class EnvController : MonoBehaviour
         }
     }
 
+    public List<(GameObject, GameObject)> GetPickupDeliveryPairs()
+    {
+        return pickupDeliveryPairs;
+    }
     //public void AddDeliveryCount()
     //{
     //    deliveryCount++;
@@ -366,7 +370,7 @@ public class EnvController : MonoBehaviour
         }
 
         //Create pair list of activated pickup and delivery points, eg. (pickup1, delivery1), (pickup2, delivery2), ...
-        List<(GameObject, GameObject)> pickupDeliveryPairs = new List<(GameObject, GameObject)>();
+        pickupDeliveryPairs = new List<(GameObject, GameObject)>();
         int backwardIndex;
         for (int i = 0; i < activatedPickupPoints.Count; i++)
         {

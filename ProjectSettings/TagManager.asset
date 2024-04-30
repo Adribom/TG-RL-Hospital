@@ -10,6 +10,8 @@ TagManager:
   - SPD
   - CS
   - AmrAgent
+  - Obstacle
+  - Wall
   layers:
   - Default
   - TransparentFX
