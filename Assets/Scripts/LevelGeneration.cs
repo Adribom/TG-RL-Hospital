@@ -23,7 +23,13 @@ public class LevelGeneration : MonoBehaviour
 
     public Room GetSingleRoom(int x, int y)
     {
-        return rooms[x, y];
+        // Check if the room is within the bounds of the array
+        if (x < -gridSizeX || x > gridSizeX || y < -gridSizeY || y > gridSizeY * 2)
+        {
+            return null;
+        }
+        //TODO retornar o indice correto para conseguir recuperar a sala, ver no debugging como está agora
+        return rooms[x + gridSizeX, y + gridSizeY];
     }
 
     public int GetGridSizeX()
@@ -40,29 +46,29 @@ public class LevelGeneration : MonoBehaviour
         if (worldSize == 1.0f) // Pair Room
         {
             this.worldSize = new Vector2(3, 3);
-            this.gridSizeX = 2;
-            this.gridSizeY = 2;
+            //this.gridSizeX = 2;
+            //this.gridSizeY = 2;
             this.numberOfRooms = 2;
         }
         else if (worldSize == 2.0f) // Small Hospital
         {
             this.worldSize = new Vector2(4, 4);
-            this.gridSizeX = 10;
-            this.gridSizeY = 10;
+            //this.gridSizeX = 10;
+            //this.gridSizeY = 10;
             this.numberOfRooms = 10;
         }
         else if (worldSize == 3.0f) // Medium Hospital
         {
             this.worldSize = new Vector2(5, 5);
-            this.gridSizeX = 20;
-            this.gridSizeY = 20;
+            //this.gridSizeX = 20;
+            //this.gridSizeY = 20;
             this.numberOfRooms = 20;
         }
         else if (worldSize == 4.0f) // Large Hospital
         {
             this.worldSize = new Vector2(6, 6);
-            this.gridSizeX = 30;
-            this.gridSizeY = 30;
+            //this.gridSizeX = 30;
+            //this.gridSizeY = 30;
             this.numberOfRooms = 30;
         }
         else

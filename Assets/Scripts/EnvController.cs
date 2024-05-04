@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using static UnityEngine.Networking.UnityWebRequest;
 using UnityEngine.UIElements;
+using System.Runtime.CompilerServices;
 
 public class EnvController : MonoBehaviour
 {
@@ -145,7 +146,7 @@ public class EnvController : MonoBehaviour
 
     void ResetScene()
     {
-        // Get the LevelGeneration and SheetAssigner components
+        // Get the LevelGeneration
         LevelGeneration levelGeneration = GetComponentInChildren<LevelGeneration>();
         
         // Exit function if levelGeneration contains children
@@ -311,7 +312,7 @@ public class EnvController : MonoBehaviour
     private void GeneratePickupAndDeliveryPoints(Room[,] rooms, List<Vector2> takenPositions, int numberOfAgents)
     {
         // Max amount of delivery points
-        maxDeliveryPoints = numberOfAgents + 2;
+        maxDeliveryPoints = numberOfAgents + 1;
 
         // Get out of function if takenPositions is doesn't have enough rooms
         if (takenPositions == null)

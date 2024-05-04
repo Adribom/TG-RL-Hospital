@@ -5,13 +5,16 @@ using Unity.MLAgents;
 using Unity.MLAgents.Sensors;
 using Unity.MLAgents.Actuators;
 using UnityEngine.Rendering;
+using UnityEditor;
 
 public class AmrAgent : Agent
 {
     private EnvController envController;
+    public PathFinding pathfinding;
+    private SheetAssigner sheetAssigner;
+    private List<(GameObject, GameObject)> pickupDeliveryPairs;
     private float collisionRadius = 10f;
     public GameObject sphereIndicator;
-    private bool IHaveAnInstrument;
     public LayerMask layerForAgentSpawnDetection;
     private Rigidbody amrAgent;
     private float agentRunSpeed = 3f;
@@ -20,7 +23,7 @@ public class AmrAgent : Agent
     public override void Initialize()
     {
         envController = GetComponentInParent<EnvController>();
-        List<(GameObject,GameObject)> pickupDeliveryPairs = envController.GetPickupDeliveryPairs();
+        pickupDeliveryPairs = envController.GetPickupDeliveryPairs();
         amrAgent = GetComponent<Rigidbody>();
     }
 
@@ -28,6 +31,7 @@ public class AmrAgent : Agent
     public override void OnEpisodeBegin()
     {
         ResetAgentComponents();
+        pickupDeliveryPairs = envController.GetPickupDeliveryPairs();
     }
     public bool CheckObjectCollision()
     {
@@ -64,7 +68,6 @@ public class AmrAgent : Agent
                 // Set the color of SphereIndicator to the color of the PickupPoint sphere
                 sphereIndicator.GetComponent<Renderer>().material.color = sphere.GetComponent<Renderer>().material.color;
                 sphereIndicator.SetActive(true);
-                IHaveAnInstrument = true;
             }
         }
         if (other.gameObject.tag == "DeliveryPoint")
@@ -88,7 +91,6 @@ public class AmrAgent : Agent
     {
         sphereIndicator.GetComponent<Renderer>().material.color = Color.white;
         sphereIndicator.SetActive(false);
-        IHaveAnInstrument = false;
     }
 
     //Rigidbody amrAgent;
@@ -96,20 +98,55 @@ public class AmrAgent : Agent
     //void Start()
     //{
     //    MyInstrument.SetActive(false);
-    //    IHaveAnInstrument = false;
     //}
 
 
-    public override void CollectObservations(VectorSensor sensor)
-    {
-        // Target and Agent positions
+    //public override void CollectObservations(VectorSensor sensor)
+    //{
+    //    for (int i = 0; i < pickupDeliveryPairs.Count; i++)
+    //    {
+    //        // Create a vector observation that contains: (x_next_A*_room, y_next_A*_room, distance_delivery_point)
+    //        Vector2 currentRoomGridPos = sheetAssigner.PositionToGridPos(this.transform);
+    //        GameObject deliveryPoint = pickupDeliveryPairs[i].Item2;
+    //        Vector2 deliveryPointGridPos = sheetAssigner.PositionToGridPos(deliveryPoint.transform);
+    //        List<Room> path = pathfinding.FindPath(currentRoomGridPos, deliveryPointGridPos);
 
-        // Agent velocity
+    //        // print the path to the delivery room
+    //        Debug.Log("Path to delivery room:");
+    //        foreach (Room room in path)
+    //        {
+    //            Debug.Log(room.gridPos);
+    //        }
 
-        // Other Agenst's positions?
+    //        if (path != null)
+    //        {
+    //            //Next room position
+    //            Vector2 nextRoomGridPos = path[0].gridPos;
 
-        // Raycast detections
-    }
+    //            //distance to delivery point
+    //            int distanceDeliveryPoint = path.Count;
+
+    //            Vector3 deliveryObservation = new Vector3(nextRoomGridPos.x, nextRoomGridPos.y, distanceDeliveryPoint);
+    //            Debug.Log("Delivery Observation: " + deliveryObservation);
+    //            //sensor.AddObservation(deliveryObservation);
+
+    //        }
+    //        else
+    //        {
+    //            Vector3 deliveryObservation = new Vector3(0, 0, 0);
+    //            Debug.Log("Delivery Observation: " + deliveryObservation);
+    //            //sensor.AddObservation(deliveryObservation);
+    //        }
+
+    //    }
+    //    // Target and Agent positions
+
+    //    // Agent velocity
+
+    //    // Other Agenst's positions?
+
+    //    // Raycast detections
+    //}
 
     /// <summary>
     /// Moves the agent according to the selected action.
@@ -144,15 +181,15 @@ public class AmrAgent : Agent
     /// <summary>
     /// Called every step of the engine. Here the agent takes an action.
     /// </summary>
-    public override void OnActionReceived(ActionBuffers actionBuffers)
-    {
-        // Force agent to reduce time to complete the task
-        AddReward(-1f / MaxStep);
-        // Move the agent using the action.
-        MoveAgent(actionBuffers.DiscreteActions);
-    }
+    //public override void OnActionReceived(ActionBuffers actionBuffers)
+    //{
+    //    // Force agent to reduce time to complete the task
+    //    AddReward(-1f / MaxStep);
+    //    // Move the agent using the action.
+    //    MoveAgent(actionBuffers.DiscreteActions);
+    //}
 
-    ////TODO: Check if continuous would be better
+    //TODO: Check if continuous would be better
     public override void Heuristic(in ActionBuffers actionsOut)
     {
         var discreteActionsOut = actionsOut.DiscreteActions;
@@ -171,6 +208,59 @@ public class AmrAgent : Agent
         else if (Input.GetKey(KeyCode.S))
         {
             discreteActionsOut[0] = 2;
+        }
+    }
+
+    public void Update()
+    {
+        // When pressing the m key
+        if (Input.GetKeyDown(KeyCode.M))
+        {
+            pathfinding = GameObject.Find("PathFinding").GetComponent<PathFinding>();
+            sheetAssigner = GameObject.Find("LevelGenerator").GetComponent<SheetAssigner>();
+
+            Debug.Log(pickupDeliveryPairs.Count);
+            for (int i = 0; i < pickupDeliveryPairs.Count; i++)
+            {
+                // Create a vector observation that contains: (x_next_A*_room, y_next_A*_room, distance_delivery_point)
+                Vector2 currentRoomGridPos = sheetAssigner.PositionToGridPos(this.transform);
+                Debug.Log("currentRoomGridPos: " + currentRoomGridPos);
+                GameObject deliveryPoint = pickupDeliveryPairs[i].Item2;
+                Debug.Log("deliveryPoint: " + deliveryPoint);
+                Vector2 deliveryPointGridPos = sheetAssigner.PositionToGridPos(deliveryPoint.transform);
+                Debug.Log("deliveryPointGridPos: " + deliveryPointGridPos);
+                List<Room> path = pathfinding.FindPath(currentRoomGridPos, deliveryPointGridPos);
+
+                
+
+                if (path != null)
+                {
+                    // print the path to the delivery room
+                    Debug.Log("Path to delivery room:");
+                    foreach (Room room in path)
+                    {
+                        Debug.Log(room.gridPos);
+                    }
+
+                    //Next room position
+                    Vector2 nextRoomGridPos = path[0].gridPos;
+
+                    //distance to delivery point
+                    int distanceDeliveryPoint = path.Count;
+
+                    Vector3 deliveryObservation = new Vector3(nextRoomGridPos.x, nextRoomGridPos.y, distanceDeliveryPoint);
+                    Debug.Log("Delivery Observation: " + deliveryObservation);
+                    //sensor.AddObservation(deliveryObservation);
+
+                }
+                else
+                {
+                    Vector3 deliveryObservation = new Vector3(0, 0, 0);
+                    Debug.Log("Null Delivery Observation: " + deliveryObservation);
+                    //sensor.AddObservation(deliveryObservation);
+                }
+
+            }
         }
     }
 }

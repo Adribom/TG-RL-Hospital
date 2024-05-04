@@ -3,40 +3,43 @@ using System.Collections.Generic;
 using System.Xml.Serialization;
 using UnityEngine;
 
-public class Pathfinding
+public class PathFinding : MonoBehaviour
 {
 
     private const int MOVE_STRAIGHT = 10;
     private const int MOVE_DIAGONAL = 14;
 
     private LevelGeneration levelGeneration;
-    private Room[,] grid;
     private List<Room> openList;
     private List<Room> closedList;
 
     private void Start()
     {
-        levelGeneration = GameObject.Find("LevelGeneration").GetComponent<LevelGeneration>();
-        grid = levelGeneration.GetRooms();
+        levelGeneration = GameObject.Find("LevelGenerator").GetComponent<LevelGeneration>();
     }
 
     public List<Room> FindPath(Vector2 startGridPos, Vector2 EndGridPos)
     {
+        levelGeneration = GameObject.Find("LevelGenerator").GetComponent<LevelGeneration>();
         // Get the start and end nodes based on the room grid positions
         Room startNode = levelGeneration.GetSingleRoom((int)startGridPos.x, (int)startGridPos.y);
         Room endNode = levelGeneration.GetSingleRoom((int)EndGridPos.x, (int)EndGridPos.y);
+        if (startNode == null || endNode == null) { return null; }
 
         openList = new List<Room> { startNode };
         closedList = new List<Room>();
 
-        for (int x = 0; x < levelGeneration.GetGridSizeX(); x++)
+        for (int x = -levelGeneration.GetGridSizeX(); x < levelGeneration.GetGridSizeX(); x++)
         {
-            for (int y = 0; y < levelGeneration.GetGridSizeY(); y++)
+            for (int y = -levelGeneration.GetGridSizeX(); y < levelGeneration.GetGridSizeX(); y++)
             {
                 Room pathNode = levelGeneration.GetSingleRoom(x,y);
-                pathNode.gCost = int.MaxValue;
-                pathNode.CalculateFCost();
-                pathNode.prevNode = null;
+                if (pathNode != null) 
+                {
+                    pathNode.gCost = int.MaxValue;
+                    pathNode.CalculateFCost();
+                    pathNode.prevNode = null;
+                }
             }
         }
 
@@ -83,26 +86,87 @@ public class Pathfinding
     {
         List<Room> neighborList = new List<Room>();
 
-        if (currentNode.gridPos.x - 1 >= 0)
+        if (currentNode.hasWalls)
         {
-            neighborList.Add(GetNode((int)currentNode.gridPos.x - 1, (int)currentNode.gridPos.y)); //Left
-            if ((int)currentNode.gridPos.y - 1 >= 0) neighborList.Add(GetNode((int)currentNode.gridPos.x - 1, (int)currentNode.gridPos.y - 1)); //Left Down
-            if ((int)currentNode.gridPos.y + 1 < levelGeneration.GetGridSizeY()) neighborList.Add(GetNode((int)currentNode.gridPos.x - 1, (int)currentNode.gridPos.y + 1)); //Left Up
+            if (currentNode.doorTop) neighborList.Add(GetNode((int)currentNode.gridPos.x, (int)currentNode.gridPos.y + 1)); //Up
+            if (currentNode.doorBot) neighborList.Add(GetNode((int)currentNode.gridPos.x, (int)currentNode.gridPos.y - 1)); //Down
+            if (currentNode.doorLeft) neighborList.Add(GetNode((int)currentNode.gridPos.x - 1, (int)currentNode.gridPos.y)); //Left
+            if (currentNode.doorRight) neighborList.Add(GetNode((int)currentNode.gridPos.x + 1, (int)currentNode.gridPos.y)); //Right
         }
-        if ((int)currentNode.gridPos.x + 1 < levelGeneration.GetGridSizeY())
+        else
         {
-            neighborList.Add(GetNode((int)currentNode.gridPos.x + 1, (int)currentNode.gridPos.y)); //Right
-            if ((int)currentNode.gridPos.y - 1 >= 0) neighborList.Add(GetNode((int)currentNode.gridPos.x + 1, (int)currentNode.gridPos.y - 1)); //Right Down
-            if ((int)currentNode.gridPos.y + 1 < levelGeneration.GetGridSizeY()) neighborList.Add(GetNode((int)currentNode.gridPos.x + 1, (int)currentNode.gridPos.y + 1)); //Right Up
-        }
-        if ((int)currentNode.gridPos.y - 1 >= 0) neighborList.Add(GetNode((int)currentNode.gridPos.x, (int)currentNode.gridPos.y - 1)); //Down
-        if ((int)currentNode.gridPos.y + 1 < levelGeneration.GetGridSizeY()) neighborList.Add(GetNode((int)currentNode.gridPos.x, (int)currentNode.gridPos.y + 1)); //Up
+            List<bool> noWallDiagonalRooms = new List<bool> { true, true, true, true }; // leftDown, rightDown, leftUp, rightUp
 
+            int x = (int)currentNode.gridPos.x;
+            int y = (int)currentNode.gridPos.y;
+
+            Room up = GetNode(x, y + 1);
+            Room down = GetNode(x, y - 1);
+            Room left = GetNode(x - 1, y);
+            Room right = GetNode(x + 1, y);
+
+            if (up != null) { neighborList.Add(up); } else { 
+                noWallDiagonalRooms[2] = false; // leftUp
+                noWallDiagonalRooms[3] = false; // rightUp
+            }
+            if (down != null) { neighborList.Add(down); } else {
+                noWallDiagonalRooms[0] = false; // leftDown
+                noWallDiagonalRooms[1] = false; // rightDown
+            }
+            if (left != null) { neighborList.Add(left); } else {
+                noWallDiagonalRooms[0] = false; // leftDown
+                noWallDiagonalRooms[2] = false; // leftUp
+            }
+            if (right != null) { neighborList.Add(right); } else {
+                noWallDiagonalRooms[1] = false; // rightDown    
+                noWallDiagonalRooms[3] = false; // rightUp
+            }
+
+            Room leftDown = GetNode(x - 1, y - 1);
+            Room rightDown = GetNode(x + 1, y - 1);
+            Room leftUp = GetNode(x - 1, y + 1);
+            Room rightUp = GetNode(x + 1, y + 1);
+            for (int i = 0; i < noWallDiagonalRooms.Count; i++)
+            {
+
+                if (noWallDiagonalRooms[i])
+                {
+                    switch (i)
+                    {
+                        case 0:
+                            if (leftDown != null && (!left.hasWalls || !down.hasWalls)) 
+                            { 
+                                neighborList.Add(GetNode(x - 1, y - 1)); // leftDown
+                            } 
+                            break;
+                        case 1:
+                            if (rightDown != null && (!right.hasWalls || !down.hasWalls))
+                            {
+                                neighborList.Add(GetNode(x + 1, y - 1)); // rightDown
+                            }
+                            break;
+                        case 2:
+                            if (leftUp != null && (!left.hasWalls || !up.hasWalls))
+                            { 
+                                neighborList.Add(GetNode(x - 1, y + 1)); // leftUp
+                            } 
+                            break;
+                        case 3:
+                            if (rightUp != null && (!right.hasWalls || !up.hasWalls))
+                            {
+                                neighborList.Add(GetNode(x + 1, y + 1)); // rightUp
+                            } 
+                            break;
+                    }
+                }
+            }
+        }
         return neighborList;
     }
 
     private Room GetNode(int x, int y)
     {
+        //TODO: adicionar verificação para caso de entrada estar fora do index das salas
         return levelGeneration.GetSingleRoom(x,y);
     }
 

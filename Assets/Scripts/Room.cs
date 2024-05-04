@@ -20,7 +20,7 @@ public class Room
     {
         gridPos = _gridPos;
         type = _type; // 0: normal, 1: center room, 2: ORs, 3: SPDs
-        hasWalls = false;
+        hasWalls = true;
     }
 
     public void CalculateFCost()

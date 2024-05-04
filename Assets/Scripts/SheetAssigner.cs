@@ -65,6 +65,7 @@ public class SheetAssigner : MonoBehaviour
             {
                 // Use corridor templates for rooms with four neighbors (without walls or doors)
                 currentSheets = sheetsCorridor;
+                room.hasWalls = false;
             }
             else
             {
@@ -84,5 +85,11 @@ public class SheetAssigner : MonoBehaviour
             }
             myRoom.transform.Rotate(90, 0, 0); // Rotate each room 90 degrees on the x-axis to make the rooms face upwards
         }
+    }
+
+    public Vector2 PositionToGridPos(Transform transform)
+    {
+        Vector2 gridPos = new Vector2(Mathf.RoundToInt(transform.position.x / (roomDimensions.x + gutterSize.x)), Mathf.RoundToInt(transform.position.z / (roomDimensions.y + gutterSize.y)));
+        return gridPos;
     }
 }
