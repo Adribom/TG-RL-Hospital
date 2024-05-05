@@ -12,7 +12,6 @@ public class DeliveryPointManager : MonoBehaviour
         Transform sphere = transform.Find("Sphere");
         if (sphere != null)
         {
-            Debug.Log("Sphere found");
             // Set the color of the sphere object
             deliverySphereColor = sphere.GetComponent<Renderer>().material.color;
         }

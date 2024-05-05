@@ -386,6 +386,20 @@ public class EnvController : MonoBehaviour
 
     }
 
+    public GameObject getDeliveryPointPair(List<(GameObject, GameObject)> pickupDeliveryPairs, GameObject sphereIndicator)
+    {
+        Color sphereIndicatorColor = sphereIndicator.GetComponent<Renderer>().material.color;
+        foreach ((GameObject pickup, GameObject delivery) in pickupDeliveryPairs)
+        {
+            Transform sphere = delivery.transform.Find("Sphere");
+            if (sphere.GetComponent<Renderer>().material.color == sphereIndicatorColor)
+            {
+                return delivery;
+            }
+        }
+        return null;
+    }
+
 
     private List<GameObject> RandomlySelectRooms(int numberOfRooms, GameObject[] roomRoots)
     {

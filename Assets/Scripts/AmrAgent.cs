@@ -6,22 +6,34 @@ using Unity.MLAgents.Sensors;
 using Unity.MLAgents.Actuators;
 using UnityEngine.Rendering;
 using UnityEditor;
+using UnityEngine.Device;
+using System.IO;
 
 public class AmrAgent : Agent
 {
     private EnvController envController;
-    public PathFinding pathfinding;
+    private PathFinding pathfinding;
     private SheetAssigner sheetAssigner;
     private List<(GameObject, GameObject)> pickupDeliveryPairs;
     private float collisionRadius = 10f;
+    [HideInInspector]
+    public bool iHaveInstrument = false;
     public GameObject sphereIndicator;
     public LayerMask layerForAgentSpawnDetection;
     private Rigidbody amrAgent;
     private float agentRunSpeed = 3f;
 
+    public void Start()
+    {
+        ResetAgentComponents();
+        envController = GetComponentInParent<EnvController>();
+        pickupDeliveryPairs = envController.GetPickupDeliveryPairs();
+    }
+
     // Called when the agent is first initialized
     public override void Initialize()
     {
+        ResetAgentComponents();
         envController = GetComponentInParent<EnvController>();
         pickupDeliveryPairs = envController.GetPickupDeliveryPairs();
         amrAgent = GetComponent<Rigidbody>();
@@ -59,12 +71,15 @@ public class AmrAgent : Agent
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.tag == "PickupPoint" && !sphereIndicator.activeSelf)
+        if (other.gameObject.tag == "PickupPoint" && !iHaveInstrument)
         {
             // If the pickupPoint has a sphere object as a child, check if the color of the sphere is the same as the delivery point
             Transform sphere = other.transform.Find("Sphere");
             if (sphere != null)
             {
+            Debug.Log("Sphere not null");
+                iHaveInstrument = true;
+
                 // Set the color of SphereIndicator to the color of the PickupPoint sphere
                 sphereIndicator.GetComponent<Renderer>().material.color = sphere.GetComponent<Renderer>().material.color;
                 sphereIndicator.SetActive(true);
@@ -73,10 +88,11 @@ public class AmrAgent : Agent
         if (other.gameObject.tag == "DeliveryPoint")
         {
             // If the sphere on the agent is activated and has the same color as the delivery point, the delivery is successful
-            if (sphereIndicator.activeSelf)
+            if (iHaveInstrument)
             {
                 Transform otherSphere = other.transform.Find("Sphere");
-                if (otherSphere != null) { 
+                if (otherSphere != null)
+                {
                     if (sphereIndicator.GetComponent<Renderer>().material.color == otherSphere.GetComponent<Renderer>().material.color)
                     {
                         ResetAgentComponents();
@@ -89,6 +105,7 @@ public class AmrAgent : Agent
 
     private void ResetAgentComponents()
     {
+        iHaveInstrument = false;
         sphereIndicator.GetComponent<Renderer>().material.color = Color.white;
         sphereIndicator.SetActive(false);
     }
@@ -211,55 +228,84 @@ public class AmrAgent : Agent
         }
     }
 
+    private void addAStarObservation(List<Room> path)
+    {
+        // Create a vector observation that contains: (x_next_A*_room, y_next_A*_room, distance_point_of_interest)
+        if (path != null)
+        {
+            // print the path to the room with point of interest
+            Debug.Log("Path to room with point of interest:");
+            foreach (Room room in path)
+            {
+                Debug.Log(room.gridPos);
+            }
+
+            Vector2 nextRoomGridPos = new Vector2();
+
+            //Next room position
+            if (path.Count > 1)
+            {
+                nextRoomGridPos = path[1].gridPos;
+            }
+            else
+            {
+                nextRoomGridPos = path[0].gridPos;
+                Debug.Log("Arrived at final destination!!");
+            }
+            //distance to delivery point
+            int distancePointOfInterest = path.Count - 1;
+
+            Vector3 AStarObservation = new Vector3(nextRoomGridPos.x, nextRoomGridPos.y, distancePointOfInterest);
+            Debug.Log("Final Observation: " + AStarObservation);
+            //sensor.AddObservation(AStarObservation);
+        }
+        else
+        {
+            Vector3 AStarObservation = new Vector3(0, 0, 0);
+            Debug.Log("Null Final Observation: " + AStarObservation);
+            //sensor.AddObservation(AStarObservation);
+        }
+    }
+
     public void Update()
     {
         // When pressing the m key
         if (Input.GetKeyDown(KeyCode.M))
         {
-            pathfinding = GameObject.Find("PathFinding").GetComponent<PathFinding>();
+            pathfinding = GetComponent<PathFinding>();
             sheetAssigner = GameObject.Find("LevelGenerator").GetComponent<SheetAssigner>();
 
             Debug.Log(pickupDeliveryPairs.Count);
-            for (int i = 0; i < pickupDeliveryPairs.Count; i++)
+            if (iHaveInstrument) 
             {
-                // Create a vector observation that contains: (x_next_A*_room, y_next_A*_room, distance_delivery_point)
                 Vector2 currentRoomGridPos = sheetAssigner.PositionToGridPos(this.transform);
                 Debug.Log("currentRoomGridPos: " + currentRoomGridPos);
-                GameObject deliveryPoint = pickupDeliveryPairs[i].Item2;
-                Debug.Log("deliveryPoint: " + deliveryPoint);
+                GameObject deliveryPoint = envController.getDeliveryPointPair(pickupDeliveryPairs, sphereIndicator);
+                if (deliveryPoint == null)
+                {
+                    Debug.Log("No delivery point pair found for the current instrument");
+                    return;
+                }
+
                 Vector2 deliveryPointGridPos = sheetAssigner.PositionToGridPos(deliveryPoint.transform);
                 Debug.Log("deliveryPointGridPos: " + deliveryPointGridPos);
                 List<Room> path = pathfinding.FindPath(currentRoomGridPos, deliveryPointGridPos);
 
-                
-
-                if (path != null)
+                addAStarObservation(path);
+            }
+            else
+            {
+                for (int i = 0; i < pickupDeliveryPairs.Count; i++)
                 {
-                    // print the path to the delivery room
-                    Debug.Log("Path to delivery room:");
-                    foreach (Room room in path)
-                    {
-                        Debug.Log(room.gridPos);
-                    }
+                    Vector2 currentRoomGridPos = sheetAssigner.PositionToGridPos(this.transform);
+                    Debug.Log("currentRoomGridPos: " + currentRoomGridPos);
+                    GameObject pickupPoint = pickupDeliveryPairs[i].Item1;
+                    Vector2 pickupPointGridPos = sheetAssigner.PositionToGridPos(pickupPoint.transform);
+                    Debug.Log("pickupPointGridPos: " + pickupPointGridPos);
+                    List<Room> path = pathfinding.FindPath(currentRoomGridPos, pickupPointGridPos);
 
-                    //Next room position
-                    Vector2 nextRoomGridPos = path[0].gridPos;
-
-                    //distance to delivery point
-                    int distanceDeliveryPoint = path.Count;
-
-                    Vector3 deliveryObservation = new Vector3(nextRoomGridPos.x, nextRoomGridPos.y, distanceDeliveryPoint);
-                    Debug.Log("Delivery Observation: " + deliveryObservation);
-                    //sensor.AddObservation(deliveryObservation);
-
+                    addAStarObservation(path);
                 }
-                else
-                {
-                    Vector3 deliveryObservation = new Vector3(0, 0, 0);
-                    Debug.Log("Null Delivery Observation: " + deliveryObservation);
-                    //sensor.AddObservation(deliveryObservation);
-                }
-
             }
         }
     }

@@ -12,7 +12,6 @@ public class PickupPointManager : MonoBehaviour
         Transform sphere = transform.Find("Sphere");
         if (sphere != null)
         {
-            Debug.Log("Sphere found");
             // Set the color of the sphere object
             pickupSphereColor = sphere.GetComponent<Renderer>().material.color;
         }
@@ -22,12 +21,17 @@ public class PickupPointManager : MonoBehaviour
     {
         if (other.gameObject.tag == "AmrAgent")
         {
+            Debug.Log("The other is an agent");
+
             // If the agent has a white child sphere, this means the agent has not picked up any color yet
             Transform sphere = other.transform.Find("SphereIndicator");
             if (sphere != null)
             {
+                Debug.Log("The other agent has a sphere");
+
                 if (sphere.GetComponent<Renderer>().material.color == Color.white)
                 {
+                    Debug.Log("The other's sphere is white, so terminate me");
                     // Pickup successful, the pickup point is disabled
                     gameObject.SetActive(false);
                 }
