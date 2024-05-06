@@ -106,10 +106,15 @@ public class EnvController : MonoBehaviour
         yield return new WaitForSeconds(time); 
     }
 
-    public void CompleteDelivery()
+    public void CompleteDelivery(GameObject deliveryPoint)
     {
         print("Surgical instrument delivered!");
         //m_AgentGroup.AddGroupReward(1f);
+
+        if (pickupDeliveryPairs.Count > 0)
+        {
+            RemoveItemPickupDeliveryPair(deliveryPoint);
+        }
 
         if (successfullDeliveries == maxDeliveryPoints) 
         {
@@ -127,22 +132,18 @@ public class EnvController : MonoBehaviour
     {
         return pickupDeliveryPairs;
     }
-    //public void AddDeliveryCount()
-    //{
-    //    deliveryCount++;
-    //}
 
-    ///// <summary>
-    ///// Use the ground's bounds to pick a random spawn position.
-    ///// </summary>
-    //public Vector3 GetRandomSpawnPos()
-    //{
-    //    return Vector3.zero;
-    //}
-    //Quaternion GetRandomRot()
-    //{
-    //    return Quaternion.Euler(0, Random.Range(0.0f, 360.0f), 0);
-    //}
+    private void RemoveItemPickupDeliveryPair(GameObject deliveryPoint)
+    {
+        foreach ((GameObject pickup, GameObject delivery) in pickupDeliveryPairs)
+        {
+            if (delivery == deliveryPoint)
+            {
+                pickupDeliveryPairs.Remove((pickup, delivery));
+                break;
+            }
+        }
+    }
 
     void ResetScene()
     {

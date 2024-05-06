@@ -77,7 +77,6 @@ public class AmrAgent : Agent
             Transform sphere = other.transform.Find("Sphere");
             if (sphere != null)
             {
-            Debug.Log("Sphere not null");
                 iHaveInstrument = true;
 
                 // Set the color of SphereIndicator to the color of the PickupPoint sphere
@@ -96,7 +95,7 @@ public class AmrAgent : Agent
                     if (sphereIndicator.GetComponent<Renderer>().material.color == otherSphere.GetComponent<Renderer>().material.color)
                     {
                         ResetAgentComponents();
-                        envController.CompleteDelivery();
+                        envController.CompleteDelivery(other.gameObject);
                     }
                 }
             }
@@ -110,60 +109,55 @@ public class AmrAgent : Agent
         sphereIndicator.SetActive(false);
     }
 
-    //Rigidbody amrAgent;
-    //// Start is called before the first frame update
-    //void Start()
-    //{
-    //    MyInstrument.SetActive(false);
-    //}
 
+    public override void CollectObservations(VectorSensor sensor)
+    { 
+        // A* Observation
+        pathfinding = GetComponent<PathFinding>();
+        sheetAssigner = GameObject.Find("LevelGenerator").GetComponent<SheetAssigner>();
 
-    //public override void CollectObservations(VectorSensor sensor)
-    //{
-    //    for (int i = 0; i < pickupDeliveryPairs.Count; i++)
-    //    {
-    //        // Create a vector observation that contains: (x_next_A*_room, y_next_A*_room, distance_delivery_point)
-    //        Vector2 currentRoomGridPos = sheetAssigner.PositionToGridPos(this.transform);
-    //        GameObject deliveryPoint = pickupDeliveryPairs[i].Item2;
-    //        Vector2 deliveryPointGridPos = sheetAssigner.PositionToGridPos(deliveryPoint.transform);
-    //        List<Room> path = pathfinding.FindPath(currentRoomGridPos, deliveryPointGridPos);
+        Debug.Log(pickupDeliveryPairs.Count);
+        if (iHaveInstrument)
+        {
+            Vector2 currentRoomGridPos = sheetAssigner.PositionToGridPos(this.transform);
+            //Debug.Log("currentRoomGridPos: " + currentRoomGridPos);
+            GameObject deliveryPoint = envController.getDeliveryPointPair(pickupDeliveryPairs, sphereIndicator);
+            if (deliveryPoint == null)
+            {
+                Debug.Log("No delivery point pair found for the current instrument");
+                return;
+            }
 
-    //        // print the path to the delivery room
-    //        Debug.Log("Path to delivery room:");
-    //        foreach (Room room in path)
-    //        {
-    //            Debug.Log(room.gridPos);
-    //        }
+            Vector2 deliveryPointGridPos = sheetAssigner.PositionToGridPos(deliveryPoint.transform);
+            //Debug.Log("deliveryPointGridPos: " + deliveryPointGridPos);
+            List<Room> path = pathfinding.FindPath(currentRoomGridPos, deliveryPointGridPos);
+            sensor.AddObservation(AStarObservation(path));
+        }
+        else
+        {
+            for (int i = 0; i < pickupDeliveryPairs.Count; i++)
+            {
+                Vector2 currentRoomGridPos = sheetAssigner.PositionToGridPos(this.transform);
+                //Debug.Log("currentRoomGridPos: " + currentRoomGridPos);
+                GameObject pickupPoint = pickupDeliveryPairs[i].Item1;
+                Vector2 pickupPointGridPos = sheetAssigner.PositionToGridPos(pickupPoint.transform);
+                //Debug.Log("pickupPointGridPos: " + pickupPointGridPos);
+                List<Room> path = pathfinding.FindPath(currentRoomGridPos, pickupPointGridPos);
+                sensor.AddObservation(AStarObservation(path));
+            }
+        }
 
-    //        if (path != null)
-    //        {
-    //            //Next room position
-    //            Vector2 nextRoomGridPos = path[0].gridPos;
+        // Agent current position
+        sensor.AddObservation(transform.position);
 
-    //            //distance to delivery point
-    //            int distanceDeliveryPoint = path.Count;
+        // Agent velocity
+        sensor.AddObservation(amrAgent.velocity);
 
-    //            Vector3 deliveryObservation = new Vector3(nextRoomGridPos.x, nextRoomGridPos.y, distanceDeliveryPoint);
-    //            Debug.Log("Delivery Observation: " + deliveryObservation);
-    //            //sensor.AddObservation(deliveryObservation);
+        // Agent rotation
+        sensor.AddObservation(transform.rotation);
 
-    //        }
-    //        else
-    //        {
-    //            Vector3 deliveryObservation = new Vector3(0, 0, 0);
-    //            Debug.Log("Delivery Observation: " + deliveryObservation);
-    //            //sensor.AddObservation(deliveryObservation);
-    //        }
-
-    //    }
-    //    // Target and Agent positions
-
-    //    // Agent velocity
-
-    //    // Other Agenst's positions?
-
-    //    // Raycast detections
-    //}
+        // Other Agenst's positions? #TODO: test if the model gets better with this observation
+    }
 
     /// <summary>
     /// Moves the agent according to the selected action.
@@ -191,20 +185,19 @@ public class AmrAgent : Agent
                 break;
         }
         transform.Rotate(rotateDir, Time.fixedDeltaTime * 200f);
-        amrAgent.AddForce(dirToGo * agentRunSpeed,
-            ForceMode.VelocityChange);
+        amrAgent.AddForce(dirToGo * agentRunSpeed, ForceMode.VelocityChange);
     }
 
     /// <summary>
     /// Called every step of the engine. Here the agent takes an action.
     /// </summary>
-    //public override void OnActionReceived(ActionBuffers actionBuffers)
-    //{
-    //    // Force agent to reduce time to complete the task
-    //    AddReward(-1f / MaxStep);
-    //    // Move the agent using the action.
-    //    MoveAgent(actionBuffers.DiscreteActions);
-    //}
+    public override void OnActionReceived(ActionBuffers actionBuffers)
+    {
+        // Force agent to reduce time to complete the task
+        AddReward(-1f / MaxStep);
+        // Move the agent using the action.
+        MoveAgent(actionBuffers.DiscreteActions);
+    }
 
     //TODO: Check if continuous would be better
     public override void Heuristic(in ActionBuffers actionsOut)
@@ -228,7 +221,7 @@ public class AmrAgent : Agent
         }
     }
 
-    private void addAStarObservation(List<Room> path)
+    private Vector2 AStarObservation(List<Room> path)
     {
         // Create a vector observation that contains: (x_next_A*_room, y_next_A*_room, distance_point_of_interest)
         if (path != null)
@@ -257,13 +250,13 @@ public class AmrAgent : Agent
 
             Vector3 AStarObservation = new Vector3(nextRoomGridPos.x, nextRoomGridPos.y, distancePointOfInterest);
             Debug.Log("Final Observation: " + AStarObservation);
-            //sensor.AddObservation(AStarObservation);
+            return AStarObservation;
         }
         else
         {
             Vector3 AStarObservation = new Vector3(0, 0, 0);
             Debug.Log("Null Final Observation: " + AStarObservation);
-            //sensor.AddObservation(AStarObservation);
+            return AStarObservation;
         }
     }
 
@@ -291,7 +284,7 @@ public class AmrAgent : Agent
                 Debug.Log("deliveryPointGridPos: " + deliveryPointGridPos);
                 List<Room> path = pathfinding.FindPath(currentRoomGridPos, deliveryPointGridPos);
 
-                addAStarObservation(path);
+                AStarObservation(path);
             }
             else
             {
@@ -304,7 +297,7 @@ public class AmrAgent : Agent
                     Debug.Log("pickupPointGridPos: " + pickupPointGridPos);
                     List<Room> path = pathfinding.FindPath(currentRoomGridPos, pickupPointGridPos);
 
-                    addAStarObservation(path);
+                    AStarObservation(path);
                 }
             }
         }
