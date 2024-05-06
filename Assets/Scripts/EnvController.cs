@@ -12,15 +12,7 @@ public class EnvController : MonoBehaviour
 {
     public class PlayerInfo
     {
-        //public AmrAgent Agent;
-        [HideInInspector]
-        public Vector3 StartingPos;
-        [HideInInspector]
-        public Quaternion StartingRot;
-        [HideInInspector]
-        public Rigidbody Rb;
-        [HideInInspector]
-        public Collider Col;
+        public AmrAgent Agent;
     }
 
     /// <summary>
@@ -31,48 +23,48 @@ public class EnvController : MonoBehaviour
     private float hospitalSize = 2.0f; // Small Hospital
     private int m_ResetTimer;
 
+    [Header("Agent Prefab")] public GameObject AgentPrefab;
     public List<PlayerInfo> AgentsList = new List<PlayerInfo>();
-
-    private Dictionary<AmrAgent, PlayerInfo> m_PlayerDict = new Dictionary<AmrAgent, PlayerInfo>();
+    public int numberOfAgents = 1;
 
     [SerializeField]
     private static float pairSphereRadius = .5f;
     public static LayerMask layerForAgentSpawnDetection;
     private List<(GameObject, GameObject)> pickupDeliveryPairs = new List<(GameObject, GameObject)>();
-    // private SimpleMultiAgentGroup m_AgentGroup;
+    private SimpleMultiAgentGroup m_AgentGroup;
     private int successfullDeliveries = 0;
     private int maxDeliveryPoints;
 
     //Start is called before the first frame update
     void Start()
     {
-        // successfullDeliveries = 0;
-        //Hide The Key
-        //Key.SetActive(false);
+        // Set the number of agents based on the hospital size
+        setAgentCount(hospitalSize);
 
-        //// Initialize TeamManager
-        //m_AgentGroup = new SimpleMultiAgentGroup();
-        //foreach (var item in AgentsList)
-        //{
-        //    item.StartingPos = item.Agent.transform.position;
-        //    item.StartingRot = item.Agent.transform.rotation;
-        //    item.Rb = item.Agent.GetComponent<Rigidbody>();
-        //    item.Col = item.Agent.GetComponent<Collider>();
-        //    // Add to team manager
-        //    m_AgentGroup.RegisterAgent(item.Agent);
-        //}
+        // Initialize TeamManager
+        m_AgentGroup = new SimpleMultiAgentGroup();
+
+        // Instantiate agents based on numberOfAgents and using PlayerInfo
+        for (int i = 0; i < numberOfAgents; i++)
+        {
+            PlayerInfo newPlayer = new PlayerInfo();
+            newPlayer.Agent = Instantiate(AgentPrefab).GetComponent<AmrAgent>();
+            AgentsList.Add(newPlayer);
+            m_AgentGroup.RegisterAgent(newPlayer.Agent);
+            newPlayer.Agent.gameObject.name = "Agent" + i;
+        }
         ResetScene();
     }
 
 
     void FixedUpdate()
     {
-        //m_ResetTimer += 1;
-        //if (m_ResetTimer >= MaxEnvironmentSteps && MaxEnvironmentSteps > 0)
-        //{
-        //    m_AgentGroup.GroupEpisodeInterrupted();
-        //    ResetScene();
-        //}
+        m_ResetTimer += 1;
+        if (m_ResetTimer >= MaxEnvironmentSteps && MaxEnvironmentSteps > 0)
+        {
+            m_AgentGroup.GroupEpisodeInterrupted();
+            ResetScene();
+        }
         if (Input.GetKeyDown(KeyCode.Q))
         {
             ResetScene();
@@ -109,7 +101,7 @@ public class EnvController : MonoBehaviour
     public void CompleteDelivery(GameObject deliveryPoint)
     {
         print("Surgical instrument delivered!");
-        //m_AgentGroup.AddGroupReward(1f);
+        m_AgentGroup.AddGroupReward(1f);
 
         if (pickupDeliveryPairs.Count > 0)
         {
@@ -119,7 +111,7 @@ public class EnvController : MonoBehaviour
         if (successfullDeliveries == maxDeliveryPoints) 
         {
             successfullDeliveries = 0;
-            //m_AgentGroup.EndGroupEpisode();
+            m_AgentGroup.EndGroupEpisode();
             ResetScene();
         }
         else
@@ -160,8 +152,8 @@ public class EnvController : MonoBehaviour
         levelGeneration.Reset();
 
         //Set world size variables
-        levelGeneration.setWorldSize(hospitalSize);
-        // levelGeneration.setWorldSize(Academy.Instance.EnvironmentParameters.GetWithDefault("HospitalSize", hospitalSize));
+        //levelGeneration.setWorldSize(hospitalSize);
+        levelGeneration.setWorldSize(Academy.Instance.EnvironmentParameters.GetWithDefault("HospitalSize", hospitalSize));
 
         SheetAssigner sheetAssigner = GetComponentInChildren<SheetAssigner>();
 
@@ -179,58 +171,64 @@ public class EnvController : MonoBehaviour
         // Spawn agents on random rooms
         List<Vector2> positionsTakenByAgents = new List<Vector2>();
 
-        AmrAgent singleAgent = FindObjectOfType<AmrAgent>();
-        SpawnOnRandomRoom(
-            singleAgent, 
-            levelGeneration.takenPositions, 
-            sheetAssigner.roomDimensions,
-            sheetAssigner.gutterSize,
-            sheetAssigner.transform.position,
-            positionsTakenByAgents
-            );
-
-        //foreach (var agent in AgentsList)
-        //{
+        //AmrAgent singleAgent = FindObjectOfType<AmrAgent>();
         //SpawnOnRandomRoom(
-        //    agent.Agent.gameObject,
-        //    levelGeneration.takenPositions,
+        //    singleAgent, 
+        //    levelGeneration.takenPositions, 
         //    sheetAssigner.roomDimensions,
         //    sheetAssigner.gutterSize,
+        //    sheetAssigner.transform.position,
         //    positionsTakenByAgents
         //    );
-        //}
+
+        foreach (var agent in AgentsList)
+        {
+            SpawnOnRandomRoom(
+                agent.Agent,
+                levelGeneration.takenPositions,
+                sheetAssigner.roomDimensions,
+                sheetAssigner.gutterSize,
+                sheetAssigner.transform.position,
+                positionsTakenByAgents
+                );
+        }
 
         GeneratePickupAndDeliveryPoints(
             levelGeneration.rooms,
             levelGeneration.takenPositions,
-            1
-            //AgentsList.Count
+            numberOfAgents
             );
 
-        //    //Reset counter
-        //    m_ResetTimer = 0;
-
-        //    //Random hospital layout
-
-        //    //Reset Agents
-        //    foreach (var item in AgentsList)
-        //    {
-        //        var pos = UseRandomAgentPosition ? GetRandomSpawnPos() : item.StartingPos;
-        //        var rot = UseRandomAgentRotation ? GetRandomRot() : item.StartingRot;
-
-        //        item.Agent.transform.SetPositionAndRotation(pos, rot);
-        //        item.Rb.velocity = Vector3.zero;
-        //        item.Rb.angularVelocity = Vector3.zero;
-        //        item.Agent.MyInstrument.SetActive(false);
-        //        item.Agent.IHaveAnInstrument = false;
-        //        item.Agent.gameObject.SetActive(true);
-        //        m_AgentGroup.RegisterAgent(item.Agent);
-        //    }
-
-        //    //Reset Key
-        //    Key.SetActive(false);
+        //Reset counter
+        m_ResetTimer = 0;
     }
 
+    
+    private void setAgentCount(float worldSize)
+    {
+        switch (worldSize)
+        {
+            case 1.0f: // Pair Room
+                this.numberOfAgents = 1;
+                this.maxDeliveryPoints = 1;
+                break;
+            case 2.0f: // Small Hospital
+                this.numberOfAgents = 2;
+                this.maxDeliveryPoints = 2;
+                break;
+            case 3.0f: // Medium Hospital
+                this.numberOfAgents = 3;
+                this.maxDeliveryPoints = 3;
+                break;
+            case 4.0f: // Large Hospital
+                this.numberOfAgents = 4;
+                this.maxDeliveryPoints = 4;
+                break;
+            default:
+                Debug.Log("Invalid world size");
+                return;
+        }
+    }
 
     private void SpawnOnRandomRoom(AmrAgent gameObject, List<Vector2> takenPositions, Vector2 roomDimensions, Vector2 gutterSize, Vector3 rootPosition, List<Vector2> positionsTakenByAgents)
     {
@@ -312,9 +310,6 @@ public class EnvController : MonoBehaviour
 
     private void GeneratePickupAndDeliveryPoints(Room[,] rooms, List<Vector2> takenPositions, int numberOfAgents)
     {
-        // Max amount of delivery points
-        maxDeliveryPoints = numberOfAgents + 1;
-
         // Get out of function if takenPositions is doesn't have enough rooms
         if (takenPositions == null)
         {
@@ -326,7 +321,6 @@ public class EnvController : MonoBehaviour
         }
 
         // Get all RoomRoot objects that are children of the level generation object and have the tag "OR" and tag "SPD"
-        // TODO: Verificar o pq que há lixo dentro dos points
         GameObject[] roomRootsOR = GameObject.FindGameObjectsWithTag("OR");
         GameObject roomRootCS = GameObject.FindGameObjectWithTag("CS");
         GameObject roomRootSPD = GameObject.FindGameObjectWithTag("SPD");

@@ -43,38 +43,27 @@ public class LevelGeneration : MonoBehaviour
     }
     public void setWorldSize(float worldSize)
     {
-        if (worldSize == 1.0f) // Pair Room
+        switch (worldSize)
         {
-            this.worldSize = new Vector2(3, 3);
-            //this.gridSizeX = 2;
-            //this.gridSizeY = 2;
-            this.numberOfRooms = 2;
-        }
-        else if (worldSize == 2.0f) // Small Hospital
-        {
-            this.worldSize = new Vector2(4, 4);
-            //this.gridSizeX = 10;
-            //this.gridSizeY = 10;
-            this.numberOfRooms = 10;
-        }
-        else if (worldSize == 3.0f) // Medium Hospital
-        {
-            this.worldSize = new Vector2(5, 5);
-            //this.gridSizeX = 20;
-            //this.gridSizeY = 20;
-            this.numberOfRooms = 20;
-        }
-        else if (worldSize == 4.0f) // Large Hospital
-        {
-            this.worldSize = new Vector2(6, 6);
-            //this.gridSizeX = 30;
-            //this.gridSizeY = 30;
-            this.numberOfRooms = 30;
-        }
-        else
-        {
-            Debug.Log("Invalid world size");
-            return;
+            case 1.0f: // Pair Room
+                this.worldSize = new Vector2(3, 3);
+                this.numberOfRooms = 2;
+                break;
+            case 2.0f: // Small Hospital
+                this.worldSize = new Vector2(4, 4);
+                this.numberOfRooms = 10;
+                break;
+            case 3.0f: // Medium Hospital
+                this.worldSize = new Vector2(5, 5);
+                this.numberOfRooms = 20;
+                break;
+            case 4.0f: // Large Hospital
+                this.worldSize = new Vector2(6, 6);
+                this.numberOfRooms = 30;
+                break;
+            default:
+                Debug.Log("Invalid world size");
+                return;
         }
     }
 
