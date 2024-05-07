@@ -28,7 +28,6 @@ public class LevelGeneration : MonoBehaviour
         {
             return null;
         }
-        //TODO retornar o indice correto para conseguir recuperar a sala, ver no debugging como está agora
         return rooms[x + gridSizeX, y + gridSizeY];
     }
 

@@ -631,6 +631,12 @@ PrefabInstance:
       propertyPath: m_Name
       value: TrainingArea
       objectReference: {fileID: 0}
+    - target: {fileID: 6829734998318394172, guid: 9e1500f19c8a75d4fae9e1fc67615274,
+        type: 3}
+      propertyPath: AgentPrefab
+      value: 
+      objectReference: {fileID: 733121724334319005, guid: a7835457f6a69fb4fba4f17d5b558abe,
+        type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

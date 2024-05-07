@@ -33,7 +33,7 @@ environment_parameters:
           signal_smoothing: true
           min_lesson_length: 100
           threshold: 0.1
-        value: singleRoom
+        value: 1.0
       - name: Lesson1 # This is the start of the second lesson
         completion_criteria:
           measure: progress
@@ -41,7 +41,7 @@ environment_parameters:
           signal_smoothing: true
           min_lesson_length: 100
           threshold: 0.3
-        value: smallHospital
+        value: 2.0
       - name: Lesson2
         completion_criteria:
           measure: progress
@@ -49,12 +49,6 @@ environment_parameters:
           signal_smoothing: true
           min_lesson_length: 100
           threshold: 0.5
-        value: mediumHospital
+        value: 3.0
       - name: Lesson3
-        completion_criteria:
-          measure: progress
-          behavior: AMRAgent
-          signal_smoothing: true
-          min_lesson_length: 100
-          threshold: 0.5
-        value: largeHospital
+        value: 4.0

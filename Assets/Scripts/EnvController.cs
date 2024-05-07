@@ -20,12 +20,15 @@ public class EnvController : MonoBehaviour
     /// </summary>
     /// <returns></returns>
     [Header("Max Environment Steps")] public int MaxEnvironmentSteps = 25000;
-    private float hospitalSize = 2.0f; // Small Hospital
+    private float hospitalSize = 1.0f; // Pair Room Hospital
     private int m_ResetTimer;
 
     [Header("Agent Prefab")] public GameObject AgentPrefab;
+    private AmrAgent amrAgentComponent;
     public List<PlayerInfo> AgentsList = new List<PlayerInfo>();
+    [HideInInspector]
     public int numberOfAgents = 1;
+    private int prevNumberOfAgents = 1;
 
     [SerializeField]
     private static float pairSphereRadius = .5f;
@@ -34,6 +37,7 @@ public class EnvController : MonoBehaviour
     private SimpleMultiAgentGroup m_AgentGroup;
     private int successfullDeliveries = 0;
     private int maxDeliveryPoints;
+    private bool childrenDestroyed = true;
 
     //Start is called before the first frame update
     void Start()
@@ -44,15 +48,9 @@ public class EnvController : MonoBehaviour
         // Initialize TeamManager
         m_AgentGroup = new SimpleMultiAgentGroup();
 
-        // Instantiate agents based on numberOfAgents and using PlayerInfo
-        for (int i = 0; i < numberOfAgents; i++)
-        {
-            PlayerInfo newPlayer = new PlayerInfo();
-            newPlayer.Agent = Instantiate(AgentPrefab).GetComponent<AmrAgent>();
-            AgentsList.Add(newPlayer);
-            m_AgentGroup.RegisterAgent(newPlayer.Agent);
-            newPlayer.Agent.gameObject.name = "Agent" + i;
-        }
+        // Add agents to the group
+        InstatiateAgents(numberOfAgents);
+
         ResetScene();
     }
 
@@ -65,25 +63,29 @@ public class EnvController : MonoBehaviour
             m_AgentGroup.GroupEpisodeInterrupted();
             ResetScene();
         }
-        if (Input.GetKeyDown(KeyCode.Q))
+        if (childrenDestroyed == false)
         {
             ResetScene();
         }
+        //if (Input.GetKeyDown(KeyCode.Q))
+        //{
+        //    ResetScene();
+        //}
 
-        if (Input.GetKeyDown(KeyCode.Y))
-        {
-            StartCoroutine(DestroyAllRooms(1f));
-            ResetScene();
-        }
-        if (Input.GetKey(KeyCode.T))
-        {
-            LevelGeneration levelGeneration = GetComponentInChildren<LevelGeneration>();
-            // Destroy all children of the level generation object
-            foreach (Transform child in levelGeneration.transform)
-            {
-                Destroy(child.gameObject);
-            }
-        }
+        //if (Input.GetKeyDown(KeyCode.Y))
+        //{
+        //    StartCoroutine(DestroyAllRooms(.3f));
+        //    ResetScene();
+        //}
+        //if (Input.GetKey(KeyCode.T))
+        //{
+        //    LevelGeneration levelGeneration = GetComponentInChildren<LevelGeneration>();
+        //    // Destroy all children of the level generation object
+        //    foreach (Transform child in levelGeneration.transform)
+        //    {
+        //        Destroy(child.gameObject);
+        //    }
+        //}
 
     }
 
@@ -95,7 +97,22 @@ public class EnvController : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
-        yield return new WaitForSeconds(time); 
+        yield return new WaitForSeconds(time);
+    }
+
+    private void InstatiateAgents(int numberOfAgentsToAdd)
+    {
+        // Instantiate agents based on numberOfAgents and using PlayerInfo
+        for (int i = 0; i < numberOfAgentsToAdd; i++)
+        {
+            PlayerInfo newPlayer = new PlayerInfo();
+            GameObject AgentGameObject = Instantiate(AgentPrefab);
+            amrAgentComponent = AgentGameObject.GetComponent<AmrAgent>();
+            newPlayer.Agent = amrAgentComponent;
+            AgentsList.Add(newPlayer);
+            m_AgentGroup.RegisterAgent(newPlayer.Agent);
+            newPlayer.Agent.gameObject.name = "Agent" + (i + numberOfAgents);
+        }
     }
 
     public void CompleteDelivery(GameObject deliveryPoint)
@@ -112,6 +129,7 @@ public class EnvController : MonoBehaviour
         {
             successfullDeliveries = 0;
             m_AgentGroup.EndGroupEpisode();
+            StartCoroutine(DestroyAllRooms(.3f));
             ResetScene();
         }
         else
@@ -145,7 +163,12 @@ public class EnvController : MonoBehaviour
         // Exit function if levelGeneration contains children
         if (levelGeneration.transform.childCount > 0)
         {
+            childrenDestroyed = false;
             return;
+        }
+        else
+        {
+            childrenDestroyed = true;
         }
 
         // Reset levelGeneration and remove all game objects that are children of the level generation object
@@ -154,6 +177,14 @@ public class EnvController : MonoBehaviour
         //Set world size variables
         //levelGeneration.setWorldSize(hospitalSize);
         levelGeneration.setWorldSize(Academy.Instance.EnvironmentParameters.GetWithDefault("HospitalSize", hospitalSize));
+        setAgentCount(Academy.Instance.EnvironmentParameters.GetWithDefault("HospitalSize", hospitalSize));
+        if (numberOfAgents != prevNumberOfAgents)
+        {
+            // Add new agents
+            int agentsToAdd = numberOfAgents - prevNumberOfAgents;
+            InstatiateAgents(numberOfAgents);
+            prevNumberOfAgents = numberOfAgents;
+        }
 
         SheetAssigner sheetAssigner = GetComponentInChildren<SheetAssigner>();
 

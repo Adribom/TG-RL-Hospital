@@ -11,9 +11,12 @@ using System.IO;
 
 public class AmrAgent : Agent
 {
+    [SerializeField]
+    private GameObject TrainingArea;
     private EnvController envController;
     private PathFinding pathfinding;
     private SheetAssigner sheetAssigner;
+    private LevelGeneration levelGeneration;
     private List<(GameObject, GameObject)> pickupDeliveryPairs;
     private float collisionRadius = 10f;
     [HideInInspector]
@@ -23,18 +26,18 @@ public class AmrAgent : Agent
     private Rigidbody amrAgent;
     private float agentRunSpeed = 3f;
 
-    public void Start()
-    {
-        ResetAgentComponents();
-        envController = GetComponentInParent<EnvController>();
-        pickupDeliveryPairs = envController.GetPickupDeliveryPairs();
-    }
+    //public void Start()
+    //{
+    //    ResetAgentComponents();
+    //    envController = GetComponentInParent<EnvController>();
+    //    pickupDeliveryPairs = envController.GetPickupDeliveryPairs();
+    //}
 
     // Called when the agent is first initialized
     public override void Initialize()
     {
         ResetAgentComponents();
-        envController = GetComponentInParent<EnvController>();
+        envController = TrainingArea.GetComponent<EnvController>();
         pickupDeliveryPairs = envController.GetPickupDeliveryPairs();
         amrAgent = GetComponent<Rigidbody>();
     }
@@ -100,6 +103,10 @@ public class AmrAgent : Agent
                 }
             }
         }
+        if (other.gameObject.tag == "Wall" || other.gameObject.tag == "Obstacle" || other.gameObject.tag == "AmrAgent")
+        {
+            AddReward(-.1f);
+        }
     }
 
     private void ResetAgentComponents()
@@ -115,8 +122,8 @@ public class AmrAgent : Agent
         // A* Observation
         pathfinding = GetComponent<PathFinding>();
         sheetAssigner = GameObject.Find("LevelGenerator").GetComponent<SheetAssigner>();
+        levelGeneration = GameObject.Find("LevelGenerator").GetComponent<LevelGeneration>();
 
-        Debug.Log(pickupDeliveryPairs.Count);
         if (iHaveInstrument)
         {
             Vector2 currentRoomGridPos = sheetAssigner.PositionToGridPos(this.transform);
@@ -147,14 +154,22 @@ public class AmrAgent : Agent
             }
         }
 
-        // Agent current position
+        // Agent normalized current position
+        float minValue = -(levelGeneration.GetGridSizeX() * (sheetAssigner.roomDimensions.x + sheetAssigner.gutterSize.x));
+        float maxValue = levelGeneration.GetGridSizeX() * (sheetAssigner.roomDimensions.x + sheetAssigner.gutterSize.x);
+        float yValueRange = 20;
+        float yOffSet = levelGeneration.transform.position.y;
+        float x = (transform.position.x - minValue) / (maxValue - minValue);
+        float y = ((transform.position.y - yOffSet) - (-yValueRange)) / (yValueRange - (-yValueRange));
+        float z = (transform.position.z - minValue) / (maxValue - minValue);
         sensor.AddObservation(transform.position);
 
         // Agent velocity
         sensor.AddObservation(amrAgent.velocity);
 
-        // Agent rotation
-        sensor.AddObservation(transform.rotation);
+        // Agent normalized rotation
+        Vector3 normalizedRotation = transform.rotation.eulerAngles / 180.0f - Vector3.one;  // [-1,1]
+        sensor.AddObservation(normalizedRotation);
 
         // Other Agenst's positions? #TODO: test if the model gets better with this observation
     }
@@ -262,44 +277,44 @@ public class AmrAgent : Agent
 
     public void Update()
     {
-        // When pressing the m key
-        if (Input.GetKeyDown(KeyCode.M))
-        {
-            pathfinding = GetComponent<PathFinding>();
-            sheetAssigner = GameObject.Find("LevelGenerator").GetComponent<SheetAssigner>();
+        //// When pressing the m key
+        //if (Input.GetKeyDown(KeyCode.M))
+        //{
+        //    pathfinding = GetComponent<PathFinding>();
+        //    sheetAssigner = GameObject.Find("LevelGenerator").GetComponent<SheetAssigner>();
 
-            Debug.Log(pickupDeliveryPairs.Count);
-            if (iHaveInstrument) 
-            {
-                Vector2 currentRoomGridPos = sheetAssigner.PositionToGridPos(this.transform);
-                Debug.Log("currentRoomGridPos: " + currentRoomGridPos);
-                GameObject deliveryPoint = envController.getDeliveryPointPair(pickupDeliveryPairs, sphereIndicator);
-                if (deliveryPoint == null)
-                {
-                    Debug.Log("No delivery point pair found for the current instrument");
-                    return;
-                }
+        //    Debug.Log(pickupDeliveryPairs.Count);
+        //    if (iHaveInstrument) 
+        //    {
+        //        Vector2 currentRoomGridPos = sheetAssigner.PositionToGridPos(this.transform);
+        //        Debug.Log("currentRoomGridPos: " + currentRoomGridPos);
+        //        GameObject deliveryPoint = envController.getDeliveryPointPair(pickupDeliveryPairs, sphereIndicator);
+        //        if (deliveryPoint == null)
+        //        {
+        //            Debug.Log("No delivery point pair found for the current instrument");
+        //            return;
+        //        }
 
-                Vector2 deliveryPointGridPos = sheetAssigner.PositionToGridPos(deliveryPoint.transform);
-                Debug.Log("deliveryPointGridPos: " + deliveryPointGridPos);
-                List<Room> path = pathfinding.FindPath(currentRoomGridPos, deliveryPointGridPos);
+        //        Vector2 deliveryPointGridPos = sheetAssigner.PositionToGridPos(deliveryPoint.transform);
+        //        Debug.Log("deliveryPointGridPos: " + deliveryPointGridPos);
+        //        List<Room> path = pathfinding.FindPath(currentRoomGridPos, deliveryPointGridPos);
 
-                AStarObservation(path);
-            }
-            else
-            {
-                for (int i = 0; i < pickupDeliveryPairs.Count; i++)
-                {
-                    Vector2 currentRoomGridPos = sheetAssigner.PositionToGridPos(this.transform);
-                    Debug.Log("currentRoomGridPos: " + currentRoomGridPos);
-                    GameObject pickupPoint = pickupDeliveryPairs[i].Item1;
-                    Vector2 pickupPointGridPos = sheetAssigner.PositionToGridPos(pickupPoint.transform);
-                    Debug.Log("pickupPointGridPos: " + pickupPointGridPos);
-                    List<Room> path = pathfinding.FindPath(currentRoomGridPos, pickupPointGridPos);
+        //        AStarObservation(path);
+        //    }
+        //    else
+        //    {
+        //        for (int i = 0; i < pickupDeliveryPairs.Count; i++)
+        //        {
+        //            Vector2 currentRoomGridPos = sheetAssigner.PositionToGridPos(this.transform);
+        //            Debug.Log("currentRoomGridPos: " + currentRoomGridPos);
+        //            GameObject pickupPoint = pickupDeliveryPairs[i].Item1;
+        //            Vector2 pickupPointGridPos = sheetAssigner.PositionToGridPos(pickupPoint.transform);
+        //            Debug.Log("pickupPointGridPos: " + pickupPointGridPos);
+        //            List<Room> path = pathfinding.FindPath(currentRoomGridPos, pickupPointGridPos);
 
-                    AStarObservation(path);
-                }
-            }
-        }
+        //            AStarObservation(path);
+        //        }
+        //    }
+        //}
     }
 }
