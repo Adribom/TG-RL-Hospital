@@ -33,7 +33,7 @@ public class EnvController : MonoBehaviour
     [SerializeField]
     private static float pairSphereRadius = .5f;
     public static LayerMask layerForAgentSpawnDetection;
-    private List<(GameObject, GameObject)> pickupDeliveryPairs = new List<(GameObject, GameObject)>();
+    public List<(GameObject, GameObject)> pickupDeliveryPairs = new List<(GameObject, GameObject)>();
     private SimpleMultiAgentGroup m_AgentGroup;
     private int successfullDeliveries = 0;
     private int maxDeliveryPoints;
@@ -106,7 +106,7 @@ public class EnvController : MonoBehaviour
         for (int i = 0; i < numberOfAgentsToAdd; i++)
         {
             PlayerInfo newPlayer = new PlayerInfo();
-            GameObject AgentGameObject = Instantiate(AgentPrefab);
+            GameObject AgentGameObject = Instantiate(AgentPrefab, this.gameObject.transform);
             amrAgentComponent = AgentGameObject.GetComponent<AmrAgent>();
             newPlayer.Agent = amrAgentComponent;
             AgentsList.Add(newPlayer);

@@ -45,19 +45,19 @@ public class LevelGeneration : MonoBehaviour
         switch (worldSize)
         {
             case 1.0f: // Pair Room
-                this.worldSize = new Vector2(3, 3);
+                this.worldSize = new Vector2(2, 2);
                 this.numberOfRooms = 2;
                 break;
             case 2.0f: // Small Hospital
-                this.worldSize = new Vector2(4, 4);
+                this.worldSize = new Vector2(5, 5);
                 this.numberOfRooms = 10;
                 break;
             case 3.0f: // Medium Hospital
-                this.worldSize = new Vector2(5, 5);
+                this.worldSize = new Vector2(6, 6);
                 this.numberOfRooms = 20;
                 break;
             case 4.0f: // Large Hospital
-                this.worldSize = new Vector2(6, 6);
+                this.worldSize = new Vector2(7, 7);
                 this.numberOfRooms = 30;
                 break;
             default:

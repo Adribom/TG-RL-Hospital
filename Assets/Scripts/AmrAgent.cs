@@ -11,12 +11,11 @@ using System.IO;
 
 public class AmrAgent : Agent
 {
-    [SerializeField]
-    private GameObject TrainingArea;
     private EnvController envController;
     private PathFinding pathfinding;
     private SheetAssigner sheetAssigner;
     private LevelGeneration levelGeneration;
+    private BufferSensorComponent bufferSensorComponent;
     private List<(GameObject, GameObject)> pickupDeliveryPairs;
     private float collisionRadius = 10f;
     [HideInInspector]
@@ -37,16 +36,15 @@ public class AmrAgent : Agent
     public override void Initialize()
     {
         ResetAgentComponents();
-        envController = TrainingArea.GetComponent<EnvController>();
-        pickupDeliveryPairs = envController.GetPickupDeliveryPairs();
         amrAgent = GetComponent<Rigidbody>();
+        envController = GetComponentInParent<EnvController>();
+        bufferSensorComponent = GetComponent<BufferSensorComponent>();
     }
 
     // Called to set-up the environment for a new episode
     public override void OnEpisodeBegin()
     {
         ResetAgentComponents();
-        pickupDeliveryPairs = envController.GetPickupDeliveryPairs();
     }
     public bool CheckObjectCollision()
     {
@@ -123,6 +121,7 @@ public class AmrAgent : Agent
         pathfinding = GetComponent<PathFinding>();
         sheetAssigner = GameObject.Find("LevelGenerator").GetComponent<SheetAssigner>();
         levelGeneration = GameObject.Find("LevelGenerator").GetComponent<LevelGeneration>();
+        pickupDeliveryPairs = envController.pickupDeliveryPairs;
 
         if (iHaveInstrument)
         {
@@ -138,7 +137,9 @@ public class AmrAgent : Agent
             Vector2 deliveryPointGridPos = sheetAssigner.PositionToGridPos(deliveryPoint.transform);
             //Debug.Log("deliveryPointGridPos: " + deliveryPointGridPos);
             List<Room> path = pathfinding.FindPath(currentRoomGridPos, deliveryPointGridPos);
-            sensor.AddObservation(AStarObservation(path));
+
+            // Use a buffer sensor to consider variable length observations
+            bufferSensorComponent.AppendObservation(AStarObservation(path));
         }
         else
         {
@@ -150,7 +151,7 @@ public class AmrAgent : Agent
                 Vector2 pickupPointGridPos = sheetAssigner.PositionToGridPos(pickupPoint.transform);
                 //Debug.Log("pickupPointGridPos: " + pickupPointGridPos);
                 List<Room> path = pathfinding.FindPath(currentRoomGridPos, pickupPointGridPos);
-                sensor.AddObservation(AStarObservation(path));
+                bufferSensorComponent.AppendObservation(AStarObservation(path));
             }
         }
 
@@ -162,14 +163,17 @@ public class AmrAgent : Agent
         float x = (transform.position.x - minValue) / (maxValue - minValue);
         float y = ((transform.position.y - yOffSet) - (-yValueRange)) / (yValueRange - (-yValueRange));
         float z = (transform.position.z - minValue) / (maxValue - minValue);
-        sensor.AddObservation(transform.position);
+        Vector3 normalizedPosition = new Vector3(x, y, z);
+        sensor.AddObservation(normalizedPosition.x);
+        sensor.AddObservation(normalizedPosition.z);
 
         // Agent velocity
-        sensor.AddObservation(amrAgent.velocity);
+        Vector2 agentVelocity = new Vector2(amrAgent.velocity.x, amrAgent.velocity.z);
+        sensor.AddObservation(agentVelocity);
 
         // Agent normalized rotation
         Vector3 normalizedRotation = transform.rotation.eulerAngles / 180.0f - Vector3.one;  // [-1,1]
-        sensor.AddObservation(normalizedRotation);
+        sensor.AddObservation(normalizedRotation.y);
 
         // Other Agenst's positions? #TODO: test if the model gets better with this observation
     }
@@ -236,42 +240,39 @@ public class AmrAgent : Agent
         }
     }
 
-    private Vector2 AStarObservation(List<Room> path)
+    private float[] AStarObservation(List<Room> path)
     {
         // Create a vector observation that contains: (x_next_A*_room, y_next_A*_room, distance_point_of_interest)
         if (path != null)
         {
-            // print the path to the room with point of interest
-            Debug.Log("Path to room with point of interest:");
-            foreach (Room room in path)
-            {
-                Debug.Log(room.gridPos);
-            }
-
-            Vector2 nextRoomGridPos = new Vector2();
+            Vector2 directionToMove = new Vector2();
 
             //Next room position
             if (path.Count > 1)
             {
-                nextRoomGridPos = path[1].gridPos;
+                directionToMove = path[1].gridPos - path[0].gridPos;
             }
             else
             {
-                nextRoomGridPos = path[0].gridPos;
+                directionToMove = Vector2.zero;
                 Debug.Log("Arrived at final destination!!");
             }
             //distance to delivery point
-            int distancePointOfInterest = path.Count - 1;
+            float distancePointOfInterest = path.Count - 1;
 
-            Vector3 AStarObservation = new Vector3(nextRoomGridPos.x, nextRoomGridPos.y, distancePointOfInterest);
-            Debug.Log("Final Observation: " + AStarObservation);
-            return AStarObservation;
+
+
+            //Normalize data between 0 and 1 before adding to the observation
+            float normalizedDistance = distancePointOfInterest / (levelGeneration.GetGridSizeX() + levelGeneration.GetGridSizeY());
+
+            float[] AStarObservationFloats = { directionToMove.x, directionToMove.y, normalizedDistance };
+            Debug.Log(AStarObservationFloats[0] + " " + AStarObservationFloats[1] + " " + AStarObservationFloats[2]);
+            return AStarObservationFloats;
         }
         else
         {
-            Vector3 AStarObservation = new Vector3(0, 0, 0);
-            Debug.Log("Null Final Observation: " + AStarObservation);
-            return AStarObservation;
+            float[] AStarObservationFloats = { 0, 0, 0 };
+            return AStarObservationFloats;
         }
     }
 

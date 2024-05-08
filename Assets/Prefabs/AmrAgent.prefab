@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 2809155788568783559}
   - component: {fileID: 1183268588924618056}
   - component: {fileID: 6981755422944609337}
+  - component: {fileID: -8499285915287856533}
   - component: {fileID: 4402035051046159016}
   - component: {fileID: 355412432620956894}
   - component: {fileID: 7700300808860176871}
@@ -155,8 +156,6 @@ MonoBehaviour:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
   MaxStep: 25000
-  TrainingArea: {fileID: 6273604956479268157, guid: 9e1500f19c8a75d4fae9e1fc67615274,
-    type: 3}
   iHaveInstrument: 0
   sphereIndicator: {fileID: 3558587305532278384}
   layerForAgentSpawnDetection:
@@ -175,7 +174,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 9
+    VectorObservationSize: 5
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -193,6 +192,21 @@ MonoBehaviour:
   m_UseChildActuators: 1
   m_DeterministicInference: 0
   m_ObservableAttributeHandling: 0
+--- !u!114 &-8499285915287856533
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 733121724334319005}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd8012d5925524537b27131fef517017, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SensorName: BufferSensor
+  m_ObservableSize: 3
+  m_MaxNumObservables: 4
 --- !u!114 &4402035051046159016
 MonoBehaviour:
   m_ObjectHideFlags: 0
