@@ -44,6 +44,7 @@ public class EnvController : MonoBehaviour
     {
         // Set the number of agents based on the hospital size
         setAgentCount(hospitalSize);
+        prevNumberOfAgents = numberOfAgents;
 
         // Initialize TeamManager
         m_AgentGroup = new SimpleMultiAgentGroup();
@@ -67,16 +68,11 @@ public class EnvController : MonoBehaviour
         {
             ResetScene();
         }
-        //if (Input.GetKeyDown(KeyCode.Q))
-        //{
-        //    ResetScene();
-        //}
-
-        //if (Input.GetKeyDown(KeyCode.Y))
-        //{
-        //    StartCoroutine(DestroyAllRooms(.3f));
-        //    ResetScene();
-        //}
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            StartCoroutine(DestroyAllRooms(.3f));
+            ResetScene();
+        }
         //if (Input.GetKey(KeyCode.T))
         //{
         //    LevelGeneration levelGeneration = GetComponentInChildren<LevelGeneration>();
@@ -157,6 +153,7 @@ public class EnvController : MonoBehaviour
 
     void ResetScene()
     {
+        Debug.Log("Resetting scene!!");
         // Get the LevelGeneration
         LevelGeneration levelGeneration = GetComponentInChildren<LevelGeneration>();
         
@@ -341,11 +338,12 @@ public class EnvController : MonoBehaviour
 
     private void GeneratePickupAndDeliveryPoints(Room[,] rooms, List<Vector2> takenPositions, int numberOfAgents)
     {
-        // Get out of function if takenPositions is doesn't have enough rooms
+        // Get out of function if takenPositions doesn't have enough rooms
         if (takenPositions == null)
         {
             return;
         }
+        // Change maxDeliveryPoints in case of fewer taken rooms
         else if (takenPositions.Count < maxDeliveryPoints)
         {
             maxDeliveryPoints = takenPositions.Count;
@@ -429,11 +427,25 @@ public class EnvController : MonoBehaviour
 
     private List<GameObject> RandomlySelectRooms(int numberOfRooms, GameObject[] roomRoots)
     {
+        int safetyCounter = 0;
         List<GameObject> selectedRooms = new List<GameObject>();
         for (int i = 0; i < numberOfRooms - 1; i++)
         {
             int randomIndex = Random.Range(0, roomRoots.Length);
+            //Check if the room is already in the list
+            if (selectedRooms.Contains(roomRoots[randomIndex]))
+            {
+                i--;
+                safetyCounter++;
+                continue;
+            }
             selectedRooms.Add(roomRoots[randomIndex]);
+            safetyCounter++;
+            if (safetyCounter > 100)
+            {
+                Debug.Log("Safety counter reached 100 when generating points of interest");
+                break;
+            }
         }
         return selectedRooms;
     }

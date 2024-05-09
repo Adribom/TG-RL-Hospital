@@ -23,7 +23,7 @@ public class AmrAgent : Agent
     public GameObject sphereIndicator;
     public LayerMask layerForAgentSpawnDetection;
     private Rigidbody amrAgent;
-    private float agentRunSpeed = 3f;
+    private float agentRunSpeed = 8f;
 
     //public void Start()
     //{
@@ -205,6 +205,8 @@ public class AmrAgent : Agent
         }
         transform.Rotate(rotateDir, Time.fixedDeltaTime * 200f);
         amrAgent.AddForce(dirToGo * agentRunSpeed, ForceMode.VelocityChange);
+
+        Debug.Log("Velocity: " + amrAgent.velocity);
     }
 
     /// <summary>
@@ -255,7 +257,6 @@ public class AmrAgent : Agent
             else
             {
                 directionToMove = Vector2.zero;
-                Debug.Log("Arrived at final destination!!");
             }
             //distance to delivery point
             float distancePointOfInterest = path.Count - 1;
@@ -266,7 +267,6 @@ public class AmrAgent : Agent
             float normalizedDistance = distancePointOfInterest / (levelGeneration.GetGridSizeX() + levelGeneration.GetGridSizeY());
 
             float[] AStarObservationFloats = { directionToMove.x, directionToMove.y, normalizedDistance };
-            Debug.Log(AStarObservationFloats[0] + " " + AStarObservationFloats[1] + " " + AStarObservationFloats[2]);
             return AStarObservationFloats;
         }
         else
