@@ -19,7 +19,7 @@ public class EnvController : MonoBehaviour
     /// Max Academy steps before this platform resets
     /// </summary>
     /// <returns></returns>
-    [Header("Max Environment Steps")] public int MaxEnvironmentSteps = 25000;
+    [Header("Max Environment Steps")] public int MaxEnvironmentSteps = 40000;
     private float hospitalSize = 1.0f; // Pair Room Hospital
     private int m_ResetTimer;
 
@@ -59,9 +59,11 @@ public class EnvController : MonoBehaviour
     void FixedUpdate()
     {
         m_ResetTimer += 1;
+        Debug.Log(m_ResetTimer);
         if (m_ResetTimer >= MaxEnvironmentSteps && MaxEnvironmentSteps > 0)
         {
             m_AgentGroup.GroupEpisodeInterrupted();
+            StartCoroutine(DestroyAllRooms(.3f));
             ResetScene();
         }
         if (childrenDestroyed == false)
@@ -224,7 +226,7 @@ public class EnvController : MonoBehaviour
         GeneratePickupAndDeliveryPoints(
             levelGeneration.rooms,
             levelGeneration.takenPositions,
-            numberOfAgents
+            levelGeneration.transform
             );
 
         //Reset counter
@@ -336,7 +338,7 @@ public class EnvController : MonoBehaviour
         }
     }
 
-    private void GeneratePickupAndDeliveryPoints(Room[,] rooms, List<Vector2> takenPositions, int numberOfAgents)
+    private void GeneratePickupAndDeliveryPoints(Room[,] rooms, List<Vector2> takenPositions, Transform transform)
     {
         // Get out of function if takenPositions doesn't have enough rooms
         if (takenPositions == null)
@@ -349,14 +351,14 @@ public class EnvController : MonoBehaviour
             maxDeliveryPoints = takenPositions.Count;
         }
 
-        // Get all RoomRoot objects that are children of the level generation object and have the tag "OR" and tag "SPD"
-        GameObject[] roomRootsOR = GameObject.FindGameObjectsWithTag("OR");
-        GameObject roomRootCS = GameObject.FindGameObjectWithTag("CS");
-        GameObject roomRootSPD = GameObject.FindGameObjectWithTag("SPD");
+        // Get all RoomRoot objects that are children of the level generation object and have the tag "OR", "CS" and "SPD"
+        List<GameObject> roomRootsOR = GetChildrenWithTag(transform, "OR");
+        GameObject roomRootCS = GetChildrenWithTag(transform, "CS")[0];
+        GameObject roomRootSPD = GetChildrenWithTag(transform, "SPD")[0];
 
         // Randomly select the rooms that will have the delivery points
         List<GameObject> selectedDeliveryRooms = new List<GameObject>();
-        if (roomRootsOR.Length > 0)
+        if (roomRootsOR.Count > 0)
         {
             selectedDeliveryRooms = RandomlySelectRooms(maxDeliveryPoints, roomRootsOR);
         }
@@ -366,7 +368,7 @@ public class EnvController : MonoBehaviour
 
         //Randomly select the rooms that will have the pickup points
         List<GameObject> selectedPickupRooms = new List<GameObject>();
-        if (roomRootsOR.Length > 0)
+        if (roomRootsOR.Count > 0)
         {
             selectedPickupRooms = RandomlySelectRooms(maxDeliveryPoints, roomRootsOR);
         }
@@ -410,6 +412,21 @@ public class EnvController : MonoBehaviour
 
     }
 
+    public static List<GameObject> GetChildrenWithTag(Transform parent, string tag)
+    {
+        List<GameObject> taggedGameObjects = new List<GameObject>();
+
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            Transform child = parent.GetChild(i);
+            if (child.tag == tag)
+            {
+                taggedGameObjects.Add(child.gameObject);
+            }
+        }
+        return taggedGameObjects;
+    }
+
     public GameObject getDeliveryPointPair(List<(GameObject, GameObject)> pickupDeliveryPairs, GameObject sphereIndicator)
     {
         Color sphereIndicatorColor = sphereIndicator.GetComponent<Renderer>().material.color;
@@ -425,13 +442,13 @@ public class EnvController : MonoBehaviour
     }
 
 
-    private List<GameObject> RandomlySelectRooms(int numberOfRooms, GameObject[] roomRoots)
+    private List<GameObject> RandomlySelectRooms(int numberOfRooms, List<GameObject> roomRoots)
     {
         int safetyCounter = 0;
         List<GameObject> selectedRooms = new List<GameObject>();
         for (int i = 0; i < numberOfRooms - 1; i++)
         {
-            int randomIndex = Random.Range(0, roomRoots.Length);
+            int randomIndex = Random.Range(0, roomRoots.Count);
             //Check if the room is already in the list
             if (selectedRooms.Contains(roomRoots[randomIndex]))
             {

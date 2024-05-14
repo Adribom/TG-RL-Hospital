@@ -1,12 +1,12 @@
 behaviors:
-  AMRAgent:
+  AmrAgent:
     trainer_type: poca
     hyperparameters:
       batch_size: 128
       buffer_size: 2048
       learning_rate: 0.0003
-      beta: 0.005
-      epsilon: 0.2
+      beta: 0.005 #  With decay = learning_rate_schedule
+      epsilon: 0.2 #  With decay = learning_rate_schedule
       lambd: 0.95
       num_epoch: 3
       learning_rate_schedule: linear
@@ -20,35 +20,36 @@ behaviors:
         gamma: 0.99
         strength: 1.0
     keep_checkpoints: 5
+    checkpoint_interval: 500000
     max_steps: 20000000
     time_horizon: 128
-    summary_freq: 20000
+    summary_freq: 20000 
 environment_parameters:
   HospitalSize:
     curriculum:
-      - name: Lesson0 # The '-' is important as this is a list
+      - name: PairRoom # The '-' is important as this is a list
         completion_criteria:
           measure: progress
-          behavior: AMRAgent
+          behavior: AmrAgent
           signal_smoothing: true
           min_lesson_length: 100
           threshold: 0.1
         value: 1.0
-      - name: Lesson1 # This is the start of the second lesson
+      - name: SmallHospital # This is the start of the second lesson
         completion_criteria:
           measure: progress
-          behavior: AMRAgent
+          behavior: AmrAgent
           signal_smoothing: true
           min_lesson_length: 100
           threshold: 0.3
         value: 2.0
-      - name: Lesson2
+      - name: MediumHospital # This is the start of the third lesson
         completion_criteria:
           measure: progress
-          behavior: AMRAgent
+          behavior: AmrAgent
           signal_smoothing: true
           min_lesson_length: 100
           threshold: 0.5
         value: 3.0
-      - name: Lesson3
+      - name: BigHospital # This is the start of the fourth lesson
         value: 4.0

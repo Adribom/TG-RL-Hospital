@@ -205,8 +205,6 @@ public class AmrAgent : Agent
         }
         transform.Rotate(rotateDir, Time.fixedDeltaTime * 200f);
         amrAgent.AddForce(dirToGo * agentRunSpeed, ForceMode.VelocityChange);
-
-        Debug.Log("Velocity: " + amrAgent.velocity);
     }
 
     /// <summary>

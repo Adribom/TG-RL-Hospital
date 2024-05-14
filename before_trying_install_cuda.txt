@@ -1,0 +1,37 @@
+absl-py==2.1.0
+attrs==23.2.0
+cattrs==1.5.0
+certifi==2024.2.2
+charset-normalizer==3.3.2
+cloudpickle==3.0.0
+colorama==0.4.6
+filelock==3.13.1
+fsspec==2024.2.0
+grpcio==1.48.2
+gym==0.26.2
+gym-notices==0.0.8
+h5py==3.10.0
+huggingface-hub==0.21.4
+idna==3.6
+Markdown==3.5.2
+MarkupSafe==2.1.5
+mlagents @ file:///D:/Repos/Unity3D/TG-RL-Hospital/ml-agents/ml-agents
+mlagents_envs @ file:///D:/Repos/Unity3D/TG-RL-Hospital/ml-agents/ml-agents-envs
+numpy==1.23.1
+onnx==1.12.0
+packaging==24.0
+PettingZoo==1.15.0
+pillow==10.2.0
+protobuf==3.19.6
+pypiwin32==223
+pywin32==306
+PyYAML==6.0.1
+requests==2.31.0
+six==1.16.0
+tensorboard==2.16.2
+tensorboard-data-server==0.7.2
+torch==1.13.1+cu117
+tqdm==4.66.2
+typing_extensions==4.10.0
+urllib3==2.2.1
+Werkzeug==3.0.1
