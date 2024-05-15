@@ -40,6 +40,15 @@ public class SheetAssigner : MonoBehaviour
                 //skip point where there is no room
                 continue;
             }
+            else if (takenPositions.Count == 1)
+            {
+                // Use OR templates for the case where there is only one room
+                currentSheets = sheetsOR;
+
+                // Change the type of the room to 2 (OR) and set tag
+                room.type = 2;
+                roomTag = "OR";
+            }
             else if (room.type == 1)
             {
                 // Central room is always a Central Storage (CS)

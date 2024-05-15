@@ -191,7 +191,7 @@ public class EnvController : MonoBehaviour
         levelGeneration.gridSizeY = Mathf.RoundToInt(levelGeneration.worldSize.y);
         levelGeneration.CreateRooms(); //lays out the actual map
         levelGeneration.SetRoomDoors(); //assigns the doors where rooms would connect
-        levelGeneration.DrawMap(); //instantiates objects to make up a map
+        //levelGeneration.DrawMap(); //instantiates objects to make up a map
         sheetAssigner.Assign(levelGeneration.rooms, levelGeneration.takenPositions); //passes room info to another script which handles generatating the level geometry
 
         // Spawn agents on random rooms
@@ -220,7 +220,6 @@ public class EnvController : MonoBehaviour
         }
 
         GeneratePickupAndDeliveryPoints(
-            levelGeneration.rooms,
             levelGeneration.takenPositions,
             levelGeneration.transform
             );
@@ -234,19 +233,23 @@ public class EnvController : MonoBehaviour
     {
         switch (worldSize)
         {
-            case 1.0f: // Pair Room
+            case 1.0f: // Single Room
                 this.numberOfAgents = 1;
                 this.maxDeliveryPoints = 1;
                 break;
-            case 2.0f: // Small Hospital
+            case 2.0f: // Pair Room
+                this.numberOfAgents = 1;
+                this.maxDeliveryPoints = 1;
+                break;
+            case 3.0f: // Small Hospital
                 this.numberOfAgents = 2;
                 this.maxDeliveryPoints = 2;
                 break;
-            case 3.0f: // Medium Hospital
+            case 4.0f: // Medium Hospital
                 this.numberOfAgents = 3;
                 this.maxDeliveryPoints = 3;
                 break;
-            case 4.0f: // Large Hospital
+            case 5.0f: // Large Hospital
                 this.numberOfAgents = 4;
                 this.maxDeliveryPoints = 4;
                 break;
@@ -331,7 +334,7 @@ public class EnvController : MonoBehaviour
         }
     }
 
-    private void GeneratePickupAndDeliveryPoints(Room[,] rooms, List<Vector2> takenPositions, Transform transform)
+    private void GeneratePickupAndDeliveryPoints(List<Vector2> takenPositions, Transform transform)
     {
         // Get out of function if takenPositions doesn't have enough rooms
         if (takenPositions == null)
@@ -342,6 +345,21 @@ public class EnvController : MonoBehaviour
         else if (takenPositions.Count < maxDeliveryPoints)
         {
             maxDeliveryPoints = takenPositions.Count;
+        }
+
+        if (takenPositions.Count == 1)
+        {
+            List<GameObject> roomRootOR = GetChildrenWithTag(transform, "OR");
+            List<GameObject> activatedDeliveryPoint = ActivateOnePointInRangeWithTag(roomRootOR, "DeliveryPoint");
+            List<GameObject> activatedPickupPoint = ActivateOnePointInRangeWithTag(roomRootOR, "PickupPoint");
+            List<(GameObject, GameObject)> pickupDeliveryPairs = new List<(GameObject, GameObject)>
+            {
+                (activatedPickupPoint[0], activatedDeliveryPoint[0])
+            };
+
+            ColourSamePairs(pickupDeliveryPairs, pairSphereRadius);
+
+            return;
         }
 
         // Get all RoomRoot objects that are children of the level generation object and have the tag "OR", "CS" and "SPD"
@@ -395,8 +413,6 @@ public class EnvController : MonoBehaviour
             backwardIndex = activatedDeliveryPoints.Count - 1 - i;
             pickupDeliveryPairs.Add((activatedPickupPoints[i], activatedDeliveryPoints[backwardIndex]));
         }
-
-        //Debug.Log("Number of Pickup-Delivery Pairs: " + pickupDeliveryPairs.Count);
 
         // Generate a id for each pair based on the color of the prefab 
         ColourSamePairs(pickupDeliveryPairs, pairSphereRadius);

@@ -44,19 +44,24 @@ public class LevelGeneration : MonoBehaviour
     {
         switch (worldSize)
         {
-            case 1.0f: // Pair Room
+            case 1.0f: // Single Room
+                this.worldSize = new Vector2(1, 1);
+                this.numberOfRooms = 1;
+                break;
+
+            case 2.0f: // Pair Room
                 this.worldSize = new Vector2(2, 2);
                 this.numberOfRooms = 2;
                 break;
-            case 2.0f: // Small Hospital
+            case 3.0f: // Small Hospital
                 this.worldSize = new Vector2(5, 5);
                 this.numberOfRooms = 10;
                 break;
-            case 3.0f: // Medium Hospital
+            case 4.0f: // Medium Hospital
                 this.worldSize = new Vector2(6, 6);
                 this.numberOfRooms = 20;
                 break;
-            case 4.0f: // Large Hospital
+            case 5.0f: // Large Hospital
                 this.worldSize = new Vector2(7, 7);
                 this.numberOfRooms = 30;
                 break;
@@ -90,6 +95,11 @@ public class LevelGeneration : MonoBehaviour
             takenPositions.Clear();
         }
         takenPositions.Insert(0, Vector2.zero);
+        if (numberOfRooms == 1)
+        {
+            // Single room
+            return;
+        }
         string roomTag = "";
         Vector2 checkPos = Vector2.zero;
         // The higher the randomCompare, the more likely the room will branch out
