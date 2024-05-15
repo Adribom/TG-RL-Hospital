@@ -68,9 +68,9 @@ environment_parameters:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 7714
+          seed: 8075
           value: 1.0
-      name: Lesson0
+      name: PairRoom
       completion_criteria:
         behavior: AmrAgent
         measure: progress
@@ -81,9 +81,9 @@ environment_parameters:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 7715
+          seed: 8076
           value: 2.0
-      name: Lesson1
+      name: SmallHospital
       completion_criteria:
         behavior: AmrAgent
         measure: progress
@@ -94,9 +94,9 @@ environment_parameters:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 7716
+          seed: 8077
           value: 3.0
-      name: Lesson2
+      name: MediumHospital
       completion_criteria:
         behavior: AmrAgent
         measure: progress
@@ -107,9 +107,9 @@ environment_parameters:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 7717
+          seed: 8078
           value: 4.0
-      name: Lesson3
+      name: BigHospital
       completion_criteria: null
 checkpoint_settings:
   run_id: AmrAgent1

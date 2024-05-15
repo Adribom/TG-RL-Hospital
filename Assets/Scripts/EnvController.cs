@@ -19,8 +19,8 @@ public class EnvController : MonoBehaviour
     /// Max Academy steps before this platform resets
     /// </summary>
     /// <returns></returns>
-    [Header("Max Environment Steps")] public int MaxEnvironmentSteps = 40000;
-    private float hospitalSize = 1.0f; // Pair Room Hospital
+    [Header("Max Environment Steps")] public int MaxEnvironmentSteps = 25000;
+    public float hospitalSize = 1.0f; // Pair Room Hospital
     private int m_ResetTimer;
 
     [Header("Agent Prefab")] public GameObject AgentPrefab;
@@ -33,7 +33,7 @@ public class EnvController : MonoBehaviour
     [SerializeField]
     private static float pairSphereRadius = .5f;
     public static LayerMask layerForAgentSpawnDetection;
-    public List<(GameObject, GameObject)> pickupDeliveryPairs = new List<(GameObject, GameObject)>();
+    private List<(GameObject, GameObject)> pickupDeliveryPairs = new List<(GameObject, GameObject)>();
     private SimpleMultiAgentGroup m_AgentGroup;
     private int successfullDeliveries = 0;
     private int maxDeliveryPoints;
@@ -59,7 +59,6 @@ public class EnvController : MonoBehaviour
     void FixedUpdate()
     {
         m_ResetTimer += 1;
-        Debug.Log(m_ResetTimer);
         if (m_ResetTimer >= MaxEnvironmentSteps && MaxEnvironmentSteps > 0)
         {
             m_AgentGroup.GroupEpisodeInterrupted();
@@ -115,7 +114,9 @@ public class EnvController : MonoBehaviour
 
     public void CompleteDelivery(GameObject deliveryPoint)
     {
-        print("Surgical instrument delivered!");
+        successfullDeliveries++;
+
+        Debug.Log("Surgical instrument delivered!");
         m_AgentGroup.AddGroupReward(1f);
 
         if (pickupDeliveryPairs.Count > 0)
@@ -129,10 +130,6 @@ public class EnvController : MonoBehaviour
             m_AgentGroup.EndGroupEpisode();
             StartCoroutine(DestroyAllRooms(.3f));
             ResetScene();
-        }
-        else
-        {
-            successfullDeliveries++;
         }
     }
 
@@ -155,7 +152,6 @@ public class EnvController : MonoBehaviour
 
     void ResetScene()
     {
-        Debug.Log("Resetting scene!!");
         // Get the LevelGeneration
         LevelGeneration levelGeneration = GetComponentInChildren<LevelGeneration>();
         
@@ -173,7 +169,7 @@ public class EnvController : MonoBehaviour
         // Reset levelGeneration and remove all game objects that are children of the level generation object
         levelGeneration.Reset();
 
-        //Set world size variables
+        //Set world size variables with values from the yaml config file
         //levelGeneration.setWorldSize(hospitalSize);
         levelGeneration.setWorldSize(Academy.Instance.EnvironmentParameters.GetWithDefault("HospitalSize", hospitalSize));
         setAgentCount(Academy.Instance.EnvironmentParameters.GetWithDefault("HospitalSize", hospitalSize));
@@ -302,8 +298,6 @@ public class EnvController : MonoBehaviour
 
         if (gameObject.CheckObjectCollision() == true)
         {
-            Debug.Log("Collision on center of the room");
-
             float checkSphereRadius = 10f;
             int numberOfCollidersFound = 0;
             int securityCounter = 0;
@@ -321,7 +315,6 @@ public class EnvController : MonoBehaviour
 
                 // Perform overlap detection using a sphere with the defined radius
                 numberOfCollidersFound = Physics.OverlapSphereNonAlloc(newAgentSpawnPosition, checkSphereRadius, collidersInsideOverlapSphere, layerForAgentSpawnDetection);
-                Debug.Log("Number of colliders found: " + numberOfCollidersFound + " | on position: " + gameObject.transform.position);
 
                 // Move to the next position in the grid
                 i += tileSize;
@@ -364,7 +357,6 @@ public class EnvController : MonoBehaviour
         }
         // Last delivery point is in the SPD
         selectedDeliveryRooms.Add(roomRootSPD);
-        //Debug.Log("Number of Delivery Rooms: " + selectedDeliveryRooms.Count);
 
         //Randomly select the rooms that will have the pickup points
         List<GameObject> selectedPickupRooms = new List<GameObject>();
@@ -374,7 +366,6 @@ public class EnvController : MonoBehaviour
         }
         // Last pickup point is in the CS
         selectedPickupRooms.Add(roomRootCS);
-        //Debug.Log("Number of Pickup Rooms: " + selectedPickupRooms.Count);
 
         // For each selected OR room, deactivate all delivery points and activate one
         List<GameObject> activatedDeliveryPoints = new List<GameObject>();
@@ -479,7 +470,6 @@ public class EnvController : MonoBehaviour
                 {
                     child.gameObject.SetActive(true);
                     // print parent location
-                    //Debug.Log("Activated child " + child.gameObject.activeInHierarchy + " point in room: " + roomRoot.transform.position);
                     activatedPoints.Add(child.gameObject);
                     goto outerLoop;
                 }
@@ -507,7 +497,6 @@ public class EnvController : MonoBehaviour
                 delivery.transform.position.y + 30,
                 delivery.transform.position.z
                 );
-            Debug.Log("Delivery position: " + delivery.transform.position);
 
             GameObject spherePickup = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             Destroy(spherePickup.GetComponent<SphereCollider>());
@@ -518,7 +507,6 @@ public class EnvController : MonoBehaviour
                 pickup.transform.position.y + 30,
                 pickup.transform.position.z
                 );
-            Debug.Log("Pickup position: " + pickup.transform.position);
 
             // Assign the same color to the pickup and delivery spheres
             Color color = Random.ColorHSV();

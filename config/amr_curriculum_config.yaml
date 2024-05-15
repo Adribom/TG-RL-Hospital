@@ -23,7 +23,7 @@ behaviors:
     checkpoint_interval: 500000
     max_steps: 20000000
     time_horizon: 128
-    summary_freq: 20000 
+    summary_freq: 30000
 environment_parameters:
   HospitalSize:
     curriculum:

@@ -25,13 +25,6 @@ public class AmrAgent : Agent
     private Rigidbody amrAgent;
     private float agentRunSpeed = 8f;
 
-    //public void Start()
-    //{
-    //    ResetAgentComponents();
-    //    envController = GetComponentInParent<EnvController>();
-    //    pickupDeliveryPairs = envController.GetPickupDeliveryPairs();
-    //}
-
     // Called when the agent is first initialized
     public override void Initialize()
     {
@@ -121,7 +114,7 @@ public class AmrAgent : Agent
         pathfinding = GetComponent<PathFinding>();
         sheetAssigner = GameObject.Find("LevelGenerator").GetComponent<SheetAssigner>();
         levelGeneration = GameObject.Find("LevelGenerator").GetComponent<LevelGeneration>();
-        pickupDeliveryPairs = envController.pickupDeliveryPairs;
+        pickupDeliveryPairs = envController.GetPickupDeliveryPairs();
 
         if (iHaveInstrument)
         {
@@ -148,6 +141,12 @@ public class AmrAgent : Agent
                 Vector2 currentRoomGridPos = sheetAssigner.PositionToGridPos(this.transform);
                 //Debug.Log("currentRoomGridPos: " + currentRoomGridPos);
                 GameObject pickupPoint = pickupDeliveryPairs[i].Item1;
+                // If pickupPoint is not active, skip it
+                if (!pickupPoint.activeSelf)
+                {
+                    continue;
+                }
+
                 Vector2 pickupPointGridPos = sheetAssigner.PositionToGridPos(pickupPoint.transform);
                 //Debug.Log("pickupPointGridPos: " + pickupPointGridPos);
                 List<Room> path = pathfinding.FindPath(currentRoomGridPos, pickupPointGridPos);
@@ -213,7 +212,10 @@ public class AmrAgent : Agent
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
         // Force agent to reduce time to complete the task
-        AddReward(-1f / MaxStep);
+        if (envController.hospitalSize > 1)
+        {
+            AddReward(-1f / MaxStep);
+        }
         // Move the agent using the action.
         MoveAgent(actionBuffers.DiscreteActions);
     }
@@ -272,48 +274,5 @@ public class AmrAgent : Agent
             float[] AStarObservationFloats = { 0, 0, 0 };
             return AStarObservationFloats;
         }
-    }
-
-    public void Update()
-    {
-        //// When pressing the m key
-        //if (Input.GetKeyDown(KeyCode.M))
-        //{
-        //    pathfinding = GetComponent<PathFinding>();
-        //    sheetAssigner = GameObject.Find("LevelGenerator").GetComponent<SheetAssigner>();
-
-        //    Debug.Log(pickupDeliveryPairs.Count);
-        //    if (iHaveInstrument) 
-        //    {
-        //        Vector2 currentRoomGridPos = sheetAssigner.PositionToGridPos(this.transform);
-        //        Debug.Log("currentRoomGridPos: " + currentRoomGridPos);
-        //        GameObject deliveryPoint = envController.getDeliveryPointPair(pickupDeliveryPairs, sphereIndicator);
-        //        if (deliveryPoint == null)
-        //        {
-        //            Debug.Log("No delivery point pair found for the current instrument");
-        //            return;
-        //        }
-
-        //        Vector2 deliveryPointGridPos = sheetAssigner.PositionToGridPos(deliveryPoint.transform);
-        //        Debug.Log("deliveryPointGridPos: " + deliveryPointGridPos);
-        //        List<Room> path = pathfinding.FindPath(currentRoomGridPos, deliveryPointGridPos);
-
-        //        AStarObservation(path);
-        //    }
-        //    else
-        //    {
-        //        for (int i = 0; i < pickupDeliveryPairs.Count; i++)
-        //        {
-        //            Vector2 currentRoomGridPos = sheetAssigner.PositionToGridPos(this.transform);
-        //            Debug.Log("currentRoomGridPos: " + currentRoomGridPos);
-        //            GameObject pickupPoint = pickupDeliveryPairs[i].Item1;
-        //            Vector2 pickupPointGridPos = sheetAssigner.PositionToGridPos(pickupPoint.transform);
-        //            Debug.Log("pickupPointGridPos: " + pickupPointGridPos);
-        //            List<Room> path = pathfinding.FindPath(currentRoomGridPos, pickupPointGridPos);
-
-        //            AStarObservation(path);
-        //        }
-        //    }
-        //}
     }
 }
