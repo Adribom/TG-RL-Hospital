@@ -1,0 +1,32 @@
+{
+    "HospitalSize": {
+        "lesson_num": 0
+    },
+    "AmrAgent": {
+        "checkpoints": [
+            {
+                "steps": 10368,
+                "file_path": "results\\AmrAgent4\\AmrAgent\\AmrAgent-10368.onnx",
+                "reward": null,
+                "creation_time": 1715893181.2924657,
+                "auxillary_file_paths": [
+                    "results\\AmrAgent4\\AmrAgent\\AmrAgent-10368.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 10368,
+            "file_path": "results\\AmrAgent4\\AmrAgent.onnx",
+            "reward": null,
+            "creation_time": 1715893181.2924657,
+            "auxillary_file_paths": [
+                "results\\AmrAgent4\\AmrAgent\\AmrAgent-10368.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.0.0",
+        "torch_version": "2.2.2+cu121"
+    }
+}

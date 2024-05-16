@@ -19,7 +19,7 @@ public class EnvController : MonoBehaviour
     /// Max Academy steps before this platform resets
     /// </summary>
     /// <returns></returns>
-    [Header("Max Environment Steps")] public int MaxEnvironmentSteps = 25000;
+    [Header("Max Environment Steps")] public int MaxEnvironmentSteps = 35000;
     public float hospitalSize = 1.0f; // Pair Room Hospital
     private int m_ResetTimer;
 
