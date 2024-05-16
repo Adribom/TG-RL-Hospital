@@ -4,7 +4,7 @@ behaviors:
     hyperparameters:
       batch_size: 128
       buffer_size: 2048
-      learning_rate: 0.0003
+      learning_rate: 0.0007
       beta: 0.005 #  With decay = learning_rate_schedule
       epsilon: 0.2 #  With decay = learning_rate_schedule
       lambd: 0.95
@@ -21,9 +21,9 @@ behaviors:
         strength: 1.0
     keep_checkpoints: 5
     checkpoint_interval: 500000
-    max_steps: 20000000
+    max_steps: 49000000
     time_horizon: 128
-    summary_freq: 30000
+    summary_freq: 40000
 environment_parameters:
   HospitalSize:
     curriculum:
@@ -32,7 +32,7 @@ environment_parameters:
           measure: progress
           behavior: AmrAgent
           signal_smoothing: true
-          min_lesson_length: 100
+          min_lesson_length: 500
           threshold: 0.1
         value: 1.0
       - name: SmallHospital # This is the start of the second lesson
@@ -40,7 +40,7 @@ environment_parameters:
           measure: progress
           behavior: AmrAgent
           signal_smoothing: true
-          min_lesson_length: 100
+          min_lesson_length: 300
           threshold: 0.3
         value: 2.0
       - name: MediumHospital # This is the start of the third lesson
@@ -48,7 +48,7 @@ environment_parameters:
           measure: progress
           behavior: AmrAgent
           signal_smoothing: true
-          min_lesson_length: 100
+          min_lesson_length: 300
           threshold: 0.5
         value: 3.0
       - name: BigHospital # This is the start of the fourth lesson

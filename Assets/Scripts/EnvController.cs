@@ -19,7 +19,7 @@ public class EnvController : MonoBehaviour
     /// Max Academy steps before this platform resets
     /// </summary>
     /// <returns></returns>
-    [Header("Max Environment Steps")] public int MaxEnvironmentSteps = 25000;
+    [Header("Max Environment Steps")] public int MaxEnvironmentSteps = 35000;
     public float hospitalSize = 1.0f; // Pair Room Hospital
     private int m_ResetTimer;
 
@@ -191,7 +191,7 @@ public class EnvController : MonoBehaviour
         levelGeneration.gridSizeY = Mathf.RoundToInt(levelGeneration.worldSize.y);
         levelGeneration.CreateRooms(); //lays out the actual map
         levelGeneration.SetRoomDoors(); //assigns the doors where rooms would connect
-        levelGeneration.DrawMap(); //instantiates objects to make up a map
+        //levelGeneration.DrawMap(); //instantiates objects to make up a map
         sheetAssigner.Assign(levelGeneration.rooms, levelGeneration.takenPositions); //passes room info to another script which handles generatating the level geometry
 
         // Spawn agents on random rooms

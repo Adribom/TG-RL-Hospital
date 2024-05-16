@@ -94,9 +94,9 @@ public class AmrAgent : Agent
                 }
             }
         }
-        if (other.gameObject.tag == "Wall" || other.gameObject.tag == "Obstacle" || other.gameObject.tag == "AmrAgent")
+        if ((other.gameObject.tag == "Wall" || other.gameObject.tag == "Obstacle" || other.gameObject.tag == "AmrAgent") && envController.hospitalSize > 1)
         {
-            AddReward(-.1f);
+            AddReward(-.05f);
         }
     }
 

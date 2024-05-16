@@ -37,9 +37,9 @@ behaviors:
     init_path: null
     keep_checkpoints: 5
     even_checkpoints: false
-    max_steps: 20000000
+    max_steps: 32500000
     time_horizon: 128
-    summary_freq: 30000
+    summary_freq: 25001
     threaded: false
     self_play: null
     behavioral_cloning: null
@@ -68,46 +68,46 @@ environment_parameters:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 9562
+          seed: 5719
           value: 1.0
       name: PairRoom
       completion_criteria:
         behavior: AmrAgent
         measure: progress
-        min_lesson_length: 100
+        min_lesson_length: 400
         signal_smoothing: true
         threshold: 0.1
         require_reset: false
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 9563
+          seed: 5720
           value: 2.0
       name: SmallHospital
       completion_criteria:
         behavior: AmrAgent
         measure: progress
-        min_lesson_length: 100
+        min_lesson_length: 300
         signal_smoothing: true
         threshold: 0.3
         require_reset: false
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 9564
+          seed: 5721
           value: 3.0
       name: MediumHospital
       completion_criteria:
         behavior: AmrAgent
         measure: progress
-        min_lesson_length: 100
+        min_lesson_length: 300
         signal_smoothing: true
         threshold: 0.5
         require_reset: false
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 9565
+          seed: 5722
           value: 4.0
       name: BigHospital
       completion_criteria: null
@@ -115,8 +115,8 @@ checkpoint_settings:
   run_id: AmrAgent2
   initialize_from: null
   load_model: false
-  resume: false
-  force: true
+  resume: true
+  force: false
   train_model: false
   inference: false
   results_dir: results

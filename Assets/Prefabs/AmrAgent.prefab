@@ -155,7 +155,7 @@ MonoBehaviour:
   agentParameters:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
-  MaxStep: 25000
+  MaxStep: 35000
   iHaveInstrument: 0
   sphereIndicator: {fileID: 3558587305532278384}
   layerForAgentSpawnDetection:
@@ -185,7 +185,7 @@ MonoBehaviour:
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 0}
   m_InferenceDevice: 0
-  m_BehaviorType: 1
+  m_BehaviorType: 0
   m_BehaviorName: AmrAgent
   TeamId: 0
   m_UseChildSensors: 1
@@ -244,7 +244,7 @@ MonoBehaviour:
   m_RaysPerDirection: 2
   m_MaxRayDegrees: 75
   m_SphereCastRadius: 0.5
-  m_RayLength: 20
+  m_RayLength: 38
   m_RayLayerMask:
     serializedVersion: 2
     m_Bits: 4294967291

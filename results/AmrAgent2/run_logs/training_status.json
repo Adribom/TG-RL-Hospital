@@ -1,62 +1,62 @@
 {
     "HospitalSize": {
-        "lesson_num": 1
+        "lesson_num": 0
     },
     "AmrAgent": {
         "checkpoints": [
             {
-                "steps": 499881,
-                "file_path": "results\\AmrAgent2\\AmrAgent\\AmrAgent-499881.onnx",
+                "steps": 999957,
+                "file_path": "results\\AmrAgent2\\AmrAgent\\AmrAgent-999957.onnx",
                 "reward": null,
-                "creation_time": 1715768364.2768364,
+                "creation_time": 1715817556.251706,
                 "auxillary_file_paths": [
-                    "results\\AmrAgent2\\AmrAgent\\AmrAgent-499881.pt"
+                    "results\\AmrAgent2\\AmrAgent\\AmrAgent-999957.pt"
                 ]
             },
             {
-                "steps": 999941,
-                "file_path": "results\\AmrAgent2\\AmrAgent\\AmrAgent-999941.onnx",
+                "steps": 1499964,
+                "file_path": "results\\AmrAgent2\\AmrAgent\\AmrAgent-1499964.onnx",
                 "reward": null,
-                "creation_time": 1715770081.2703717,
+                "creation_time": 1715819609.5786664,
                 "auxillary_file_paths": [
-                    "results\\AmrAgent2\\AmrAgent\\AmrAgent-999941.pt"
+                    "results\\AmrAgent2\\AmrAgent\\AmrAgent-1499964.pt"
                 ]
             },
             {
-                "steps": 1499918,
-                "file_path": "results\\AmrAgent2\\AmrAgent\\AmrAgent-1499918.onnx",
+                "steps": 1991535,
+                "file_path": "results\\AmrAgent2\\AmrAgent\\AmrAgent-1991535.onnx",
                 "reward": null,
-                "creation_time": 1715771806.5793135,
+                "creation_time": 1715821655.6519954,
                 "auxillary_file_paths": [
-                    "results\\AmrAgent2\\AmrAgent\\AmrAgent-1499918.pt"
+                    "results\\AmrAgent2\\AmrAgent\\AmrAgent-1991535.pt"
                 ]
             },
             {
-                "steps": 1999937,
-                "file_path": "results\\AmrAgent2\\AmrAgent\\AmrAgent-1999937.onnx",
+                "steps": 1999983,
+                "file_path": "results\\AmrAgent2\\AmrAgent\\AmrAgent-1999983.onnx",
                 "reward": null,
-                "creation_time": 1715773543.447127,
+                "creation_time": 1715854459.5392125,
                 "auxillary_file_paths": [
-                    "results\\AmrAgent2\\AmrAgent\\AmrAgent-1999937.pt"
+                    "results\\AmrAgent2\\AmrAgent\\AmrAgent-1999983.pt"
                 ]
             },
             {
-                "steps": 2204897,
-                "file_path": "results\\AmrAgent2\\AmrAgent\\AmrAgent-2204897.onnx",
+                "steps": 2004207,
+                "file_path": "results\\AmrAgent2\\AmrAgent\\AmrAgent-2004207.onnx",
                 "reward": null,
-                "creation_time": 1715774428.9278057,
+                "creation_time": 1715854501.0627818,
                 "auxillary_file_paths": [
-                    "results\\AmrAgent2\\AmrAgent\\AmrAgent-2204897.pt"
+                    "results\\AmrAgent2\\AmrAgent\\AmrAgent-2004207.pt"
                 ]
             }
         ],
         "final_checkpoint": {
-            "steps": 2204897,
+            "steps": 2004207,
             "file_path": "results\\AmrAgent2\\AmrAgent.onnx",
             "reward": null,
-            "creation_time": 1715774428.9278057,
+            "creation_time": 1715854501.0627818,
             "auxillary_file_paths": [
-                "results\\AmrAgent2\\AmrAgent\\AmrAgent-2204897.pt"
+                "results\\AmrAgent2\\AmrAgent\\AmrAgent-2004207.pt"
             ]
         }
     },
