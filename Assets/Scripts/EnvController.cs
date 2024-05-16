@@ -287,6 +287,7 @@ public class EnvController : MonoBehaviour
 
         // Spawn the agent on the room based on the room's position with random rotation
         gameObject.gameObject.transform.position = agentSpawnPosition;
+
         gameObject.gameObject.transform.rotation = Quaternion.Euler(0, Random.Range(0.0f, 360.0f), 0);
 
         // Hard coded, TODO: Get the tile size from the RoomInstance
@@ -304,7 +305,7 @@ public class EnvController : MonoBehaviour
             float checkSphereRadius = 10f;
             int numberOfCollidersFound = 0;
             int securityCounter = 0;
-            int i = (int)agentSpawnPosition.x + tileSize;
+            int i = (int)agentSpawnPosition.x + tileSize * 5;
             int j = (int)agentSpawnPosition.z;
             
             // Array to store the colliders found inside the overlap sphere
@@ -352,7 +353,7 @@ public class EnvController : MonoBehaviour
             List<GameObject> roomRootOR = GetChildrenWithTag(transform, "OR");
             List<GameObject> activatedDeliveryPoint = ActivateOnePointInRangeWithTag(roomRootOR, "DeliveryPoint");
             List<GameObject> activatedPickupPoint = ActivateOnePointInRangeWithTag(roomRootOR, "PickupPoint");
-            List<(GameObject, GameObject)> pickupDeliveryPairs = new List<(GameObject, GameObject)>
+            pickupDeliveryPairs = new List<(GameObject, GameObject)>
             {
                 (activatedPickupPoint[0], activatedDeliveryPoint[0])
             };
