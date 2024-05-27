@@ -3,10 +3,10 @@ behaviors:
   AmrAgent:
     trainer_type: poca
     hyperparameters:
-      batch_size: 128
-      buffer_size: 2048
-      learning_rate: 0.0007
-      beta: 0.005
+      batch_size: 1024
+      buffer_size: 10240
+      learning_rate: 0.0002
+      beta: 0.01
       epsilon: 0.2
       lambd: 0.95
       num_epoch: 3
@@ -37,9 +37,9 @@ behaviors:
     init_path: null
     keep_checkpoints: 5
     even_checkpoints: false
-    max_steps: 49000000
-    time_horizon: 128
-    summary_freq: 40000
+    max_steps: 20000000
+    time_horizon: 64
+    summary_freq: 20000
     threaded: false
     self_play: null
     behavioral_cloning: null
@@ -68,7 +68,20 @@ environment_parameters:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 4796
+          seed: 3786
+          value: 1.0
+      name: SingleRoom
+      completion_criteria:
+        behavior: AmrAgent
+        measure: progress
+        min_lesson_length: 300
+        signal_smoothing: true
+        threshold: 0.1
+        require_reset: false
+    - value:
+        sampler_type: constant
+        sampler_parameters:
+          seed: 3787
           value: 2.0
       name: PairRoom
       completion_criteria:
@@ -76,13 +89,13 @@ environment_parameters:
         measure: progress
         min_lesson_length: 500
         signal_smoothing: true
-        threshold: 0.1
+        threshold: 0.2
         require_reset: false
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 4797
-          value: 2.0
+          seed: 3788
+          value: 3.0
       name: SmallHospital
       completion_criteria:
         behavior: AmrAgent
@@ -94,8 +107,8 @@ environment_parameters:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 4798
-          value: 3.0
+          seed: 3789
+          value: 4.0
       name: MediumHospital
       completion_criteria:
         behavior: AmrAgent
@@ -107,15 +120,15 @@ environment_parameters:
     - value:
         sampler_type: constant
         sampler_parameters:
-          seed: 4799
-          value: 4.0
+          seed: 3790
+          value: 5.0
       name: BigHospital
       completion_criteria: null
 checkpoint_settings:
   run_id: AmrAgent4
   initialize_from: null
   load_model: false
-  resume: false
+  resume: true
   force: false
   train_model: false
   inference: false

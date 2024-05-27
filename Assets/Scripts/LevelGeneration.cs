@@ -24,7 +24,7 @@ public class LevelGeneration : MonoBehaviour
     public Room GetSingleRoom(int x, int y)
     {
         // Check if the room is within the bounds of the array
-        if (x < -gridSizeX || x > gridSizeX || y < -gridSizeY || y > gridSizeY * 2)
+        if (x < -gridSizeX || x > gridSizeX || y < -gridSizeY || y > gridSizeY)
         {
             return null;
         }

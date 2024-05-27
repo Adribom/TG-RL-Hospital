@@ -8,6 +8,7 @@ using UnityEngine.Rendering;
 using UnityEditor;
 using UnityEngine.Device;
 using System.IO;
+using Unity.Mathematics;
 
 public class AmrAgent : Agent
 {
@@ -94,9 +95,9 @@ public class AmrAgent : Agent
                 }
             }
         }
-        if ((other.gameObject.tag == "Wall" || other.gameObject.tag == "Obstacle" || other.gameObject.tag == "AmrAgent") && envController.hospitalSize > 1)
+        if (other.gameObject.tag == "Wall" || other.gameObject.tag == "Obstacle" || other.gameObject.tag == "AmrAgent")
         {
-            AddReward(-.05f);
+            envController.AddRewardForGroup(-.005f);
         }
     }
 
@@ -132,7 +133,7 @@ public class AmrAgent : Agent
             List<Room> path = pathfinding.FindPath(currentRoomGridPos, deliveryPointGridPos);
 
             // Use a buffer sensor to consider variable length observations
-            bufferSensorComponent.AppendObservation(AStarObservation(path));
+            bufferSensorComponent.AppendObservation(AStarObservation(path, deliveryPoint.transform));
         }
         else
         {
@@ -141,6 +142,12 @@ public class AmrAgent : Agent
                 Vector2 currentRoomGridPos = sheetAssigner.PositionToGridPos(this.transform);
                 //Debug.Log("currentRoomGridPos: " + currentRoomGridPos);
                 GameObject pickupPoint = pickupDeliveryPairs[i].Item1;
+                if (pickupPoint == null)
+                {
+                    List<Room> emptyPath = new List<Room>();
+                    bufferSensorComponent.AppendObservation(AStarObservation(emptyPath, pickupPoint.transform));
+                    return;
+                }
                 // If pickupPoint is not active, skip it
                 if (!pickupPoint.activeSelf)
                 {
@@ -150,29 +157,34 @@ public class AmrAgent : Agent
                 Vector2 pickupPointGridPos = sheetAssigner.PositionToGridPos(pickupPoint.transform);
                 //Debug.Log("pickupPointGridPos: " + pickupPointGridPos);
                 List<Room> path = pathfinding.FindPath(currentRoomGridPos, pickupPointGridPos);
-                bufferSensorComponent.AppendObservation(AStarObservation(path));
+                bufferSensorComponent.AppendObservation(AStarObservation(path, pickupPoint.transform));
             }
         }
+        // If agent has instrument
+        sensor.AddObservation(iHaveInstrument);
+        Debug.Log("I have instrument: " + iHaveInstrument);
 
         // Agent normalized current position
-        float minValue = -(levelGeneration.GetGridSizeX() * (sheetAssigner.roomDimensions.x + sheetAssigner.gutterSize.x));
-        float maxValue = levelGeneration.GetGridSizeX() * (sheetAssigner.roomDimensions.x + sheetAssigner.gutterSize.x);
-        float yValueRange = 20;
-        float yOffSet = levelGeneration.transform.position.y;
-        float x = (transform.position.x - minValue) / (maxValue - minValue);
-        float y = ((transform.position.y - yOffSet) - (-yValueRange)) / (yValueRange - (-yValueRange));
-        float z = (transform.position.z - minValue) / (maxValue - minValue);
-        Vector3 normalizedPosition = new Vector3(x, y, z);
-        sensor.AddObservation(normalizedPosition.x);
-        sensor.AddObservation(normalizedPosition.z);
+        //float minValue = -(levelGeneration.GetGridSizeX() * (sheetAssigner.roomDimensions.x + sheetAssigner.gutterSize.x));
+        //float maxValue = levelGeneration.GetGridSizeX() * (sheetAssigner.roomDimensions.x + sheetAssigner.gutterSize.x);
+        ////float yValueRange = 20;
+        ////float yOffSet = levelGeneration.transform.position.y;
+        //float x = (transform.position.x - minValue) / (maxValue - minValue);
+        ////float y = ((transform.position.y - yOffSet) - (-yValueRange)) / (yValueRange - (-yValueRange));
+        //float z = (transform.position.z - minValue) / (maxValue - minValue);
+        //Vector2 normalizedPosition = new Vector2(x, z);
+        //sensor.AddObservation(normalizedPosition);
+        //Debug.Log("Normalized Position: " + normalizedPosition);
 
         // Agent velocity
-        Vector2 agentVelocity = new Vector2(amrAgent.velocity.x, amrAgent.velocity.z);
+        Vector2 agentVelocity = new Vector2(amrAgent.velocity.x / 90, amrAgent.velocity.z / 90);
         sensor.AddObservation(agentVelocity);
+        Debug.Log("Agent Velocity: " + agentVelocity);
 
         // Agent normalized rotation
         Vector3 normalizedRotation = transform.rotation.eulerAngles / 180.0f - Vector3.one;  // [-1,1]
         sensor.AddObservation(normalizedRotation.y);
+        Debug.Log("Normalized Rotation: " + normalizedRotation.y);
 
         // Other Agenst's positions? #TODO: test if the model gets better with this observation
     }
@@ -182,6 +194,8 @@ public class AmrAgent : Agent
     /// </summary>
     public void MoveAgent(ActionSegment<int> act)
     {
+        // Force agent to reduce time to complete the task
+        envController.AddRewardForGroup(-1f / MaxStep);
         var dirToGo = Vector3.zero;
         var rotateDir = Vector3.zero;
 
@@ -211,11 +225,10 @@ public class AmrAgent : Agent
     /// </summary>
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
-        // Force agent to reduce time to complete the task
-        if (envController.hospitalSize > 1)
-        {
-            AddReward(-1f / MaxStep);
-        }
+        //if (envController.hospitalSize > 1)
+        //{
+        //    AddReward(-1f / MaxStep);
+        //}
         // Move the agent using the action.
         MoveAgent(actionBuffers.DiscreteActions);
     }
@@ -242,10 +255,10 @@ public class AmrAgent : Agent
         }
     }
 
-    private float[] AStarObservation(List<Room> path)
+    private float[] AStarObservation(List<Room> path, Transform deliveryPointPos)
     {
         // Create a vector observation that contains: (x_next_A*_room, y_next_A*_room, distance_point_of_interest)
-        if (path != null)
+        if (path != null && path.Count > 0)
         {
             Vector2 directionToMove = new Vector2();
 
@@ -259,12 +272,14 @@ public class AmrAgent : Agent
                 directionToMove = Vector2.zero;
             }
             //distance to delivery point
-            float distancePointOfInterest = path.Count - 1;
-
-
+            float distanceAmrPointX = math.abs(deliveryPointPos.position.x - this.gameObject.transform.position.x);
+            float distanceAmrPointZ = math.abs(deliveryPointPos.position.z - this.gameObject.transform.position.z);
+            float distancePointOfInterest = math.sqrt(math.pow(distanceAmrPointX, 2f) + math.pow(distanceAmrPointZ, 2f));
 
             //Normalize data between 0 and 1 before adding to the observation
-            float normalizedDistance = distancePointOfInterest / (levelGeneration.GetGridSizeX() + levelGeneration.GetGridSizeY());
+            float gridSizeX = levelGeneration.GetGridSizeX() * (sheetAssigner.roomDimensions.x + sheetAssigner.gutterSize.x);
+            float gridSizeY = levelGeneration.GetGridSizeY() * (sheetAssigner.roomDimensions.y + sheetAssigner.gutterSize.y);
+            float normalizedDistance = distancePointOfInterest / ((gridSizeX + gridSizeY) * 0.7f); // 0.7f is a factor to make the distance smaller
 
             float[] AStarObservationFloats = { directionToMove.x, directionToMove.y, normalizedDistance };
             return AStarObservationFloats;

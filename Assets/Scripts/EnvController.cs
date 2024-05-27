@@ -19,7 +19,7 @@ public class EnvController : MonoBehaviour
     /// Max Academy steps before this platform resets
     /// </summary>
     /// <returns></returns>
-    [Header("Max Environment Steps")] public int MaxEnvironmentSteps = 35000;
+    [Header("Max Environment Steps")] public int MaxEnvironmentSteps = 15000;
     public float hospitalSize = 1.0f; // Pair Room Hospital
     private int m_ResetTimer;
 
@@ -38,6 +38,41 @@ public class EnvController : MonoBehaviour
     private int successfullDeliveries = 0;
     private int maxDeliveryPoints;
     private bool childrenDestroyed = true;
+
+    private void setAgentCount(float worldSize)
+    {
+        switch (worldSize)
+        {
+            case 1.0f: // Single Room
+                numberOfAgents = 1;
+                maxDeliveryPoints = 1;
+                MaxEnvironmentSteps = 15000;
+                break;
+            case 2.0f: // Pair Room
+                numberOfAgents = 1;
+                maxDeliveryPoints = 1;
+                MaxEnvironmentSteps = 20000;
+                break;
+            case 3.0f: // Small Hospital
+                numberOfAgents = 2;
+                maxDeliveryPoints = 2;
+                MaxEnvironmentSteps = 25000;
+                break;
+            case 4.0f: // Medium Hospital
+                numberOfAgents = 3;
+                maxDeliveryPoints = 3;
+                MaxEnvironmentSteps = 25000;
+                break;
+            case 5.0f: // Large Hospital
+                numberOfAgents = 4;
+                maxDeliveryPoints = 4;
+                MaxEnvironmentSteps = 30000;
+                break;
+            default:
+                Debug.Log("Invalid world size");
+                return;
+        }
+    }
 
     //Start is called before the first frame update
     void Start()
@@ -110,6 +145,11 @@ public class EnvController : MonoBehaviour
             m_AgentGroup.RegisterAgent(newPlayer.Agent);
             newPlayer.Agent.gameObject.name = "Agent" + (i + numberOfAgents);
         }
+    }
+
+    public void AddRewardForGroup(float reward)
+    {
+        m_AgentGroup.AddGroupReward(reward);
     }
 
     public void CompleteDelivery(GameObject deliveryPoint)
@@ -226,37 +266,6 @@ public class EnvController : MonoBehaviour
 
         //Reset counter
         m_ResetTimer = 0;
-    }
-
-    
-    private void setAgentCount(float worldSize)
-    {
-        switch (worldSize)
-        {
-            case 1.0f: // Single Room
-                this.numberOfAgents = 1;
-                this.maxDeliveryPoints = 1;
-                break;
-            case 2.0f: // Pair Room
-                this.numberOfAgents = 1;
-                this.maxDeliveryPoints = 1;
-                break;
-            case 3.0f: // Small Hospital
-                this.numberOfAgents = 2;
-                this.maxDeliveryPoints = 2;
-                break;
-            case 4.0f: // Medium Hospital
-                this.numberOfAgents = 3;
-                this.maxDeliveryPoints = 3;
-                break;
-            case 5.0f: // Large Hospital
-                this.numberOfAgents = 4;
-                this.maxDeliveryPoints = 4;
-                break;
-            default:
-                Debug.Log("Invalid world size");
-                return;
-        }
     }
 
     private void SpawnOnRandomRoom(AmrAgent gameObject, List<Vector2> takenPositions, Vector2 roomDimensions, Vector2 gutterSize, Vector3 rootPosition, List<Vector2> positionsTakenByAgents)
