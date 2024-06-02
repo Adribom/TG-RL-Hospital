@@ -85,7 +85,8 @@ public class SheetAssigner : MonoBehaviour
             //pick a random index for the array
             int index = Mathf.RoundToInt(Random.value * (currentSheets.Length - 1));
             //find position to place room
-            Vector3 pos = new Vector3(room.gridPos.x * (roomDimensions.x + gutterSize.x), transform.position.y, room.gridPos.y * (roomDimensions.y + gutterSize.y));
+            Vector2 xzPos = GridPosToWorldPos(room.gridPos);
+            Vector3 pos = new Vector3(xzPos.x, transform.position.y, xzPos.y);
             RoomInstance myRoom = Instantiate(RoomObj, pos, Quaternion.identity, GetComponent<LevelGeneration>().transform).GetComponent<RoomInstance>();
             myRoom.Setup(currentSheets[index], room.gridPos, room.type, room.doorTop, room.doorBot, room.doorLeft, room.doorRight, GetComponent<LevelGeneration>().NumberOfNeighbors(room.gridPos, takenPositions));
             if (roomTag != "")
@@ -96,9 +97,15 @@ public class SheetAssigner : MonoBehaviour
         }
     }
 
-    public Vector2 PositionToGridPos(Transform transform)
+    public Vector2 WorldPosToGridPos(Transform transform)
     {
         Vector2 gridPos = new Vector2(Mathf.RoundToInt(transform.position.x / (roomDimensions.x + gutterSize.x)), Mathf.RoundToInt(transform.position.z / (roomDimensions.y + gutterSize.y)));
         return gridPos;
+    }
+
+    public Vector2 GridPosToWorldPos(Vector2 gridPos)
+    {
+        Vector2 position = new Vector2(gridPos.x * (roomDimensions.x + gutterSize.x), gridPos.y * (roomDimensions.y + gutterSize.y));
+        return position;
     }
 }

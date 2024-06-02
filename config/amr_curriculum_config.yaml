@@ -2,18 +2,18 @@ behaviors:
   AmrAgent:
     trainer_type: poca
     hyperparameters:
-      batch_size: 1024
-      buffer_size: 10240
+      batch_size: 128
+      buffer_size: 2048
       learning_rate: 0.0003
-      beta: 0.01 #  With decay = learning_rate_schedule
-      epsilon: 0.2 #  With decay = learning_rate_schedule
+      beta: 0.008 #  With decay = learning_rate_schedule
+      epsilon: 0.3 #  With decay = learning_rate_schedule
       lambd: 0.95
       num_epoch: 3
       learning_rate_schedule: linear
     network_settings:
       normalize: false
-      hidden_units: 512
-      num_layers: 2
+      hidden_units: 256
+      num_layers: 3
       vis_encode_type: simple
     reward_signals:
       extrinsic:
@@ -27,8 +27,8 @@ behaviors:
         learning_rate: 0.0003
     keep_checkpoints: 5
     checkpoint_interval: 500000
-    max_steps: 12500000
-    time_horizon: 64
+    max_steps: 25000000
+    time_horizon: 128
     summary_freq: 20000
 environment_parameters:
   HospitalSize:
@@ -39,7 +39,7 @@ environment_parameters:
           behavior: AmrAgent
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.2
+          threshold: 0.05
         value: 1.0
       - name: PairRoom # The '-' is important as this is a list
         completion_criteria:
@@ -47,7 +47,7 @@ environment_parameters:
           behavior: AmrAgent
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.4
+          threshold: 0.3
         value: 2.0
       - name: SmallHospital # This is the start of the second lesson
         completion_criteria:
@@ -55,7 +55,7 @@ environment_parameters:
           behavior: AmrAgent
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.4
+          threshold: 0.6
         value: 3.0
       - name: MediumHospital # This is the start of the third lesson
         completion_criteria:
@@ -63,7 +63,7 @@ environment_parameters:
           behavior: AmrAgent
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.5
+          threshold: 0.8
         value: 4.0
       - name: BigHospital # This is the start of the fourth lesson
         value: 5.0

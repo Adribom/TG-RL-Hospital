@@ -19,8 +19,8 @@ public class EnvController : MonoBehaviour
     /// Max Academy steps before this platform resets
     /// </summary>
     /// <returns></returns>
-    [Header("Max Environment Steps")] public int MaxEnvironmentSteps = 15000;
-    public float hospitalSize = 1.0f; // Pair Room Hospital
+    [Header("Max Environment Steps")] public int MaxEnvironmentSteps;
+    public float hospitalSize = 1.0f; // Single Room Hospital
     private int m_ResetTimer;
 
     [Header("Agent Prefab")] public GameObject AgentPrefab;
@@ -36,7 +36,7 @@ public class EnvController : MonoBehaviour
     private List<(GameObject, GameObject)> pickupDeliveryPairs = new List<(GameObject, GameObject)>();
     private SimpleMultiAgentGroup m_AgentGroup;
     private int successfullDeliveries = 0;
-    private int maxDeliveryPoints;
+    public int maxDeliveryPoints;
     private bool childrenDestroyed = true;
 
     private void setAgentCount(float worldSize)
@@ -50,7 +50,7 @@ public class EnvController : MonoBehaviour
                 break;
             case 2.0f: // Pair Room
                 numberOfAgents = 1;
-                maxDeliveryPoints = 1;
+                maxDeliveryPoints = 2;
                 MaxEnvironmentSteps = 20000;
                 break;
             case 3.0f: // Small Hospital
@@ -157,7 +157,7 @@ public class EnvController : MonoBehaviour
         successfullDeliveries++;
 
         Debug.Log("Surgical instrument delivered!");
-        m_AgentGroup.AddGroupReward(1f);
+        m_AgentGroup.AddGroupReward(1f / maxDeliveryPoints);
 
         if (pickupDeliveryPairs.Count > 0)
         {
@@ -351,8 +351,8 @@ public class EnvController : MonoBehaviour
         {
             return;
         }
-        // Change maxDeliveryPoints in case of fewer taken rooms
-        else if (takenPositions.Count < maxDeliveryPoints)
+        // Change maxDeliveryPoints in case of fewer taken rooms capacity of delivery points
+        else if (takenPositions.Count * 2 < maxDeliveryPoints)
         {
             maxDeliveryPoints = takenPositions.Count;
         }
@@ -383,8 +383,23 @@ public class EnvController : MonoBehaviour
         {
             selectedDeliveryRooms = RandomlySelectRooms(maxDeliveryPoints, roomRootsOR);
         }
-        // Last delivery point is in the SPD
+        // Last deliveries are in the SPD
+        //int maxDeliveryPointsOnSPD = 0;
+        //for (int i = 0; i < maxDeliveryPoints - selectedDeliveryRooms.Count; i++)
+        //{
+        //    maxDeliveryPointsOnSPD++;
+        //    selectedDeliveryRooms.Add(roomRootSPD);
+        //    if (maxDeliveryPointsOnSPD == 3)
+        //    {
+        //        break;
+        //    }
+        //}
         selectedDeliveryRooms.Add(roomRootSPD);
+        if (hospitalSize == 2.0f)
+        {
+            selectedDeliveryRooms.Add(roomRootSPD);
+            selectedDeliveryRooms.Add(roomRootSPD);
+        }
 
         //Randomly select the rooms that will have the pickup points
         List<GameObject> selectedPickupRooms = new List<GameObject>();
@@ -392,8 +407,24 @@ public class EnvController : MonoBehaviour
         {
             selectedPickupRooms = RandomlySelectRooms(maxDeliveryPoints, roomRootsOR);
         }
-        // Last pickup point is in the CS
+        // Last pickup points are in the CS
+        //int maxPickupPointsOnCS = 0;
+        //for (int i = 0; i < maxDeliveryPoints - selectedDeliveryRooms.Count; i++)
+        //{
+        //    maxPickupPointsOnCS++;
+        //    selectedPickupRooms.Add(roomRootCS);
+        //    if (maxPickupPointsOnCS == 3)
+        //    {
+        //        break;
+        //    }
+        //}
         selectedPickupRooms.Add(roomRootCS);
+        if (hospitalSize == 2.0f)
+        {
+            selectedPickupRooms.Add(roomRootCS);
+            selectedPickupRooms.Add(roomRootCS);
+        }
+
 
         // For each selected OR room, deactivate all delivery points and activate one
         List<GameObject> activatedDeliveryPoints = new List<GameObject>();
@@ -492,7 +523,7 @@ public class EnvController : MonoBehaviour
             // Activate one point of interest with the tag
             foreach (Transform child in roomRoot.transform)
             {
-                if (child.gameObject.tag == tag)
+                if (child.gameObject.tag == tag && child.gameObject.activeSelf == false)
                 {
                     child.gameObject.SetActive(true);
                     // print parent location

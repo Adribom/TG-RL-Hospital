@@ -155,7 +155,7 @@ MonoBehaviour:
   agentParameters:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
-  MaxStep: 15000
+  MaxStep: 30000
   iHaveInstrument: 0
   sphereIndicator: {fileID: 3558587305532278384}
   layerForAgentSpawnDetection:
@@ -185,7 +185,7 @@ MonoBehaviour:
     hasUpgradedBrainParametersWithActionSpec: 1
   m_Model: {fileID: 0}
   m_InferenceDevice: 0
-  m_BehaviorType: 1
+  m_BehaviorType: 0
   m_BehaviorName: AmrAgent
   TeamId: 0
   m_UseChildSensors: 1
@@ -205,7 +205,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 3
+  m_ObservableSize: 2
   m_MaxNumObservables: 4
 --- !u!114 &4402035051046159016
 MonoBehaviour:
