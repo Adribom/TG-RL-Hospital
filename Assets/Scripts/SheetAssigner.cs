@@ -26,6 +26,8 @@ public class SheetAssigner : MonoBehaviour
     // Room Tag
     public string roomTag = "";
 
+    private bool removeWalls = false;
+
     public void Assign(Room[,] rooms, List<Vector2> takenPositions)
     {
         foreach (Room room in rooms)
@@ -33,6 +35,7 @@ public class SheetAssigner : MonoBehaviour
             //Variable to hold the texture array
             Texture2D[] currentSheets;
             roomTag = "";
+            removeWalls = false;
 
             // if else statement to choose the correct texture array
             if (room == null)
@@ -82,13 +85,20 @@ public class SheetAssigner : MonoBehaviour
                 currentSheets = sheetsNormal;
             }
 
+            if (takenPositions.Count == 4)
+            {
+                // Special case for second lesson on curriculum
+                removeWalls = true;
+                room.hasWalls = false;
+            }
+
             //pick a random index for the array
             int index = Mathf.RoundToInt(Random.value * (currentSheets.Length - 1));
             //find position to place room
             Vector2 xzPos = GridPosToWorldPos(room.gridPos);
             Vector3 pos = new Vector3(xzPos.x, transform.position.y, xzPos.y);
             RoomInstance myRoom = Instantiate(RoomObj, pos, Quaternion.identity, GetComponent<LevelGeneration>().transform).GetComponent<RoomInstance>();
-            myRoom.Setup(currentSheets[index], room.gridPos, room.type, room.doorTop, room.doorBot, room.doorLeft, room.doorRight, GetComponent<LevelGeneration>().NumberOfNeighbors(room.gridPos, takenPositions));
+            myRoom.Setup(currentSheets[index], room.gridPos, room.type, room.doorTop, room.doorBot, room.doorLeft, room.doorRight, GetComponent<LevelGeneration>().NumberOfNeighbors(room.gridPos, takenPositions), removeWalls);
             if (roomTag != "")
             {
                 myRoom.tag = roomTag;

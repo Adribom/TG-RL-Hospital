@@ -36,6 +36,7 @@ public class EnvController : MonoBehaviour
     private List<(GameObject, GameObject)> pickupDeliveryPairs = new List<(GameObject, GameObject)>();
     private SimpleMultiAgentGroup m_AgentGroup;
     private int successfullDeliveries = 0;
+    [HideInInspector]
     public int maxDeliveryPoints;
     private bool childrenDestroyed = true;
 
@@ -53,17 +54,22 @@ public class EnvController : MonoBehaviour
                 maxDeliveryPoints = 2;
                 MaxEnvironmentSteps = 20000;
                 break;
-            case 3.0f: // Small Hospital
+            case 3.0f: // Pair Room
+                numberOfAgents = 1;
+                maxDeliveryPoints = 2;
+                MaxEnvironmentSteps = 20000;
+                break;
+            case 4.0f: // Small Hospital
                 numberOfAgents = 2;
                 maxDeliveryPoints = 2;
                 MaxEnvironmentSteps = 25000;
                 break;
-            case 4.0f: // Medium Hospital
+            case 5.0f: // Medium Hospital
                 numberOfAgents = 3;
                 maxDeliveryPoints = 3;
                 MaxEnvironmentSteps = 25000;
                 break;
-            case 5.0f: // Large Hospital
+            case 6.0f: // Large Hospital
                 numberOfAgents = 4;
                 maxDeliveryPoints = 4;
                 MaxEnvironmentSteps = 30000;
@@ -258,7 +264,7 @@ public class EnvController : MonoBehaviour
                 positionsTakenByAgents
                 );
         }
-
+        Debug.Log("taken positions: " + levelGeneration.takenPositions.Count);
         GeneratePickupAndDeliveryPoints(
             levelGeneration.takenPositions,
             levelGeneration.transform
@@ -395,9 +401,8 @@ public class EnvController : MonoBehaviour
         //    }
         //}
         selectedDeliveryRooms.Add(roomRootSPD);
-        if (hospitalSize == 2.0f)
+        if (hospitalSize == 2.0f || hospitalSize == 3.0f)
         {
-            selectedDeliveryRooms.Add(roomRootSPD);
             selectedDeliveryRooms.Add(roomRootSPD);
         }
 
@@ -419,9 +424,8 @@ public class EnvController : MonoBehaviour
         //    }
         //}
         selectedPickupRooms.Add(roomRootCS);
-        if (hospitalSize == 2.0f)
+        if (hospitalSize == 2.0f || hospitalSize == 3.0f)
         {
-            selectedPickupRooms.Add(roomRootCS);
             selectedPickupRooms.Add(roomRootCS);
         }
 
@@ -517,21 +521,27 @@ public class EnvController : MonoBehaviour
 
     private List<GameObject> ActivateOnePointInRangeWithTag(List<GameObject> selectedRooms, string tag)
     {
+        bool inverseSearch = false;
+
         List<GameObject> activatedPoints = new List<GameObject>();
         foreach (GameObject roomRoot in selectedRooms)
         {
             // Activate one point of interest with the tag
-            foreach (Transform child in roomRoot.transform)
+            int currentIndex = roomRoot.transform.childCount - 1;
+            for (int i = 0; i < roomRoot.transform.childCount; i++)
             {
+                int index = inverseSearch ? currentIndex - 1 - i : i;
+                Transform child = roomRoot.transform.GetChild(index);
                 if (child.gameObject.tag == tag && child.gameObject.activeSelf == false)
                 {
                     child.gameObject.SetActive(true);
                     // print parent location
                     activatedPoints.Add(child.gameObject);
+                    inverseSearch = !inverseSearch;
                     goto outerLoop;
                 }
             }
-            outerLoop:;
+        outerLoop:;
         }
         return activatedPoints;
     }

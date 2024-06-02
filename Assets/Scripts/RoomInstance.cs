@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.MLAgents.Sensors;
 using UnityEngine;
 
 public class RoomInstance : MonoBehaviour
@@ -16,7 +17,7 @@ public class RoomInstance : MonoBehaviour
     ColorToGameObject[] mappings;
     public float tileSize = 16;
     Vector2 roomSizeInTiles = new Vector2(9, 17); // Vector2(x, y), where x is the width and y is the height of the room
-    public void Setup(Texture2D _tex, Vector2 _gridPos, int _type, bool _doorTop, bool _doorBot, bool _doorLeft, bool _doorRight, int numNeighbors)
+    public void Setup(Texture2D _tex, Vector2 _gridPos, int _type, bool _doorTop, bool _doorBot, bool _doorLeft, bool _doorRight, int numNeighbors, bool removeWalls)
     {
         tex = _tex;
         gridPos = _gridPos;
@@ -25,14 +26,14 @@ public class RoomInstance : MonoBehaviour
         doorBot = _doorBot;
         doorLeft = _doorLeft;
         doorRight = _doorRight;
-        if (numNeighbors == 4 && type == 0) 
+        if ((numNeighbors == 4 && type == 0) || removeWalls) 
         {
-            GenerateRoomTiles(numNeighbors, type);
+            GenerateRoomTiles(numNeighbors, type, removeWalls);
         }
         else
         {
             MakeDoors();
-            GenerateRoomTiles(numNeighbors, type);
+            GenerateRoomTiles(numNeighbors, type, removeWalls);
         }
     }
     void MakeDoors()
@@ -54,6 +55,42 @@ public class RoomInstance : MonoBehaviour
         rotation = new Vector3(0, 0, 0);
         PlaceDoor(spawnPos, doorLeft, doorL, rotation);
     }
+
+    void PlaceWallsOnDoors(bool upperWall, bool bottomWall, bool leftWall, bool rightWall)
+    {
+        Vector3 spawnPos = Vector3.zero;
+        Vector3 rotation = Vector3.zero;
+
+        if (upperWall)
+        {
+            //top door, get position and set rotation then spawn
+            spawnPos = transform.position + Vector3.up * (roomSizeInTiles.y / 4 * tileSize) - Vector3.up * (tileSize / 4);
+            rotation = new Vector3(0, 0, 90);
+            PlaceDoor(spawnPos, false, doorU, rotation);
+        }
+        if (bottomWall)
+        {
+            //bottom door
+            spawnPos = transform.position + Vector3.down * (roomSizeInTiles.y / 4 * tileSize) - Vector3.down * (tileSize / 4);
+            rotation = new Vector3(0, 0, 90);
+            PlaceDoor(spawnPos, false, doorD, rotation);
+        }
+        if (rightWall)
+        {
+        //right door
+        spawnPos = transform.position + Vector3.right * (roomSizeInTiles.x * tileSize) - Vector3.right * (tileSize);
+        rotation = new Vector3(0, 0, 0);
+        PlaceDoor(spawnPos, false, doorR, rotation);
+        }
+        if (leftWall)
+        {
+        //left door
+        spawnPos = transform.position + Vector3.left * (roomSizeInTiles.x * tileSize) - Vector3.left * (tileSize);
+        rotation = new Vector3(0, 0, 0);
+        PlaceDoor(spawnPos, false, doorL, rotation);
+        }
+    }
+
     void PlaceDoor(Vector3 spawnPos, bool door, GameObject doorSpawn, Vector3 rotation)
     {
         // check whether its a door or wall, then spawn
@@ -66,7 +103,7 @@ public class RoomInstance : MonoBehaviour
             Instantiate(doorWall, spawnPos, Quaternion.Euler(rotation)).transform.parent = transform;
         }
     }
-    void GenerateRoomTiles(int numNeighbors, int type)
+    void GenerateRoomTiles(int numNeighbors, int type, bool removeWalls)
     {
         //Variables for iteration
         int xStart = 0;
@@ -84,6 +121,49 @@ public class RoomInstance : MonoBehaviour
             yStart++;
             width -= 1;
             height -= 1;
+        }
+        else if (removeWalls)
+        {
+            bool upperWall = true;
+            bool bottomWall = true;
+            bool leftWall = true;
+            bool rightWall = true;
+
+            if (gridPos.x == 0)
+            {
+                width -= 1;
+                rightWall = false;
+
+                // Dont remove pillar between rooms
+                GenerateTile(width, 0);
+            }
+            else 
+            { 
+                xStart++;
+                leftWall = false;
+
+                // Dont remove pillar between rooms
+                GenerateTile(width - 1, height - 1);
+            }
+
+            if (gridPos.y == 0)
+            {
+                yStart++;
+                upperWall = false;
+
+                // Dont remove pillar between rooms
+                GenerateTile(width, height - 1);
+            }
+            else 
+            { 
+                height -= 1;
+                bottomWall = false;
+
+                // Dont remove pillar between rooms
+                GenerateTile(0, height);
+            }
+
+            PlaceWallsOnDoors(upperWall, bottomWall, leftWall, rightWall);
         }
 
         //loop through every pixel of the texture

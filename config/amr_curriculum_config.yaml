@@ -6,13 +6,13 @@ behaviors:
       buffer_size: 2048
       learning_rate: 0.0003
       beta: 0.008 #  With decay = learning_rate_schedule
-      epsilon: 0.3 #  With decay = learning_rate_schedule
+      epsilon: 0.2 #  With decay = learning_rate_schedule
       lambd: 0.95
       num_epoch: 3
       learning_rate_schedule: linear
     network_settings:
       normalize: false
-      hidden_units: 256
+      hidden_units: 512
       num_layers: 3
       vis_encode_type: simple
     reward_signals:
@@ -27,7 +27,7 @@ behaviors:
         learning_rate: 0.0003
     keep_checkpoints: 5
     checkpoint_interval: 500000
-    max_steps: 25000000
+    max_steps: 31250000
     time_horizon: 128
     summary_freq: 20000
 environment_parameters:
@@ -39,15 +39,23 @@ environment_parameters:
           behavior: AmrAgent
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.05
+          threshold: 0.04
         value: 1.0
+      - name: BigSingleRoom # The '-' is important as this is a list
+        completion_criteria:
+          measure: progress
+          behavior: AmrAgent
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 0.24
+        value: 2.0
       - name: PairRoom # The '-' is important as this is a list
         completion_criteria:
           measure: progress
           behavior: AmrAgent
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.3
+          threshold: 0.4
         value: 2.0
       - name: SmallHospital # This is the start of the second lesson
         completion_criteria:
