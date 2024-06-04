@@ -15,6 +15,8 @@ public class SheetAssigner : MonoBehaviour
     [SerializeField]
     Texture2D[] sheetsCorridor;
     [SerializeField]
+    Texture2D[] sheetsLessonTwo;
+    [SerializeField]
     GameObject RoomObj;
 
     // roomDimensions without overlaping: 16*17, 16*9
@@ -78,6 +80,11 @@ public class SheetAssigner : MonoBehaviour
                 // Use corridor templates for rooms with four neighbors (without walls or doors)
                 currentSheets = sheetsCorridor;
                 room.hasWalls = false;
+            }
+            else if (takenPositions.Count == 4)
+            {
+                // Special case for second lesson on curriculum
+                currentSheets = sheetsLessonTwo;
             }
             else
             {

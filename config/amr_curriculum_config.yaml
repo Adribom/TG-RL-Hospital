@@ -2,14 +2,14 @@ behaviors:
   AmrAgent:
     trainer_type: poca
     hyperparameters:
-      batch_size: 128
-      buffer_size: 2048
-      learning_rate: 0.0003
-      beta: 0.008 #  With decay = learning_rate_schedule
+      batch_size: 1024
+      buffer_size: 10240
+      learning_rate: 0.00005
+      beta: 0.01 #  With decay = learning_rate_schedule
       epsilon: 0.2 #  With decay = learning_rate_schedule
       lambd: 0.95
       num_epoch: 3
-      learning_rate_schedule: linear
+      learning_rate_schedule: constant
     network_settings:
       normalize: false
       hidden_units: 512
@@ -19,17 +19,17 @@ behaviors:
       extrinsic:
         gamma: 0.99
         strength: 1.0
-      curiosity:
-        gamma: 0.99
-        strength: 0.02
-        network_settings:
-          hidden_units: 256
-        learning_rate: 0.0003
+      # curiosity:
+      #   gamma: 0.99
+      #   strength: 0.02
+      #   network_settings:
+      #     hidden_units: 256
+      #   learning_rate: 0.0003
     keep_checkpoints: 5
-    checkpoint_interval: 500000
+    checkpoint_interval: 1000000
     max_steps: 31250000
     time_horizon: 128
-    summary_freq: 20000
+    summary_freq: 500000
 environment_parameters:
   HospitalSize:
     curriculum:
@@ -56,7 +56,7 @@ environment_parameters:
           signal_smoothing: true
           min_lesson_length: 100
           threshold: 0.4
-        value: 2.0
+        value: 3.0
       - name: SmallHospital # This is the start of the second lesson
         completion_criteria:
           measure: progress
@@ -64,7 +64,7 @@ environment_parameters:
           signal_smoothing: true
           min_lesson_length: 100
           threshold: 0.6
-        value: 3.0
+        value: 4.0
       - name: MediumHospital # This is the start of the third lesson
         completion_criteria:
           measure: progress
@@ -72,6 +72,6 @@ environment_parameters:
           signal_smoothing: true
           min_lesson_length: 100
           threshold: 0.8
-        value: 4.0
-      - name: BigHospital # This is the start of the fourth lesson
         value: 5.0
+      - name: BigHospital # This is the start of the fourth lesson
+        value: 6.0

@@ -98,6 +98,10 @@ MonoBehaviour:
   - {fileID: 2800000, guid: 818cf923aa3f40043903296a1a06d7d9, type: 3}
   - {fileID: 2800000, guid: 818cf923aa3f40043903296a1a06d7d9, type: 3}
   - {fileID: 2800000, guid: 1132dc17d2120a141a0c9b3afd37d3b5, type: 3}
+  sheetsLessonTwo:
+  - {fileID: 2800000, guid: 818cf923aa3f40043903296a1a06d7d9, type: 3}
+  - {fileID: 2800000, guid: ea8516568a2389249a44d8007d57e9e3, type: 3}
+  - {fileID: 2800000, guid: 818cf923aa3f40043903296a1a06d7d9, type: 3}
   RoomObj: {fileID: 7935675786286940361, guid: 092b915af527d594aa11083a065a8de8, type: 3}
   roomDimensions: {x: 255, y: 128}
   gutterSize: {x: 0, y: 0}
@@ -180,6 +184,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MaxEnvironmentSteps: 25000
+  hospitalSize: 1
   AgentPrefab: {fileID: 733121724334319005, guid: a7835457f6a69fb4fba4f17d5b558abe,
     type: 3}
   numberOfAgents: 1
+  maxDeliveryPoints: 0

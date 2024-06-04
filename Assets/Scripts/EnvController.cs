@@ -264,7 +264,6 @@ public class EnvController : MonoBehaviour
                 positionsTakenByAgents
                 );
         }
-        Debug.Log("taken positions: " + levelGeneration.takenPositions.Count);
         GeneratePickupAndDeliveryPoints(
             levelGeneration.takenPositions,
             levelGeneration.transform

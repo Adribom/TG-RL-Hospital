@@ -1272,7 +1272,7 @@ PrefabInstance:
     - target: {fileID: 6829734998318394172, guid: 9e1500f19c8a75d4fae9e1fc67615274,
         type: 3}
       propertyPath: hospitalSize
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
