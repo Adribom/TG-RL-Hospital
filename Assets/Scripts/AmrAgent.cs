@@ -78,10 +78,10 @@ public class AmrAgent : Agent
                 sphereIndicator.GetComponent<Renderer>().material.color = sphere.GetComponent<Renderer>().material.color;
                 sphereIndicator.SetActive(true);
 
-                // Add reward in case of second lesson
-                if (envController.hospitalSize == 2f)
+                // Add reward only for agent that has the instrument
+                if (envController.hospitalSize >= 4f)
                 {
-                    envController.AddRewardForGroup(1f/envController.maxDeliveryPoints);
+                    AddReward(.5f / envController.maxDeliveryPoints);
                 }
             }
         }
@@ -103,7 +103,7 @@ public class AmrAgent : Agent
         }
         if (other.gameObject.tag == "Wall" || other.gameObject.tag == "Obstacle" || other.gameObject.tag == "AmrAgent")
         {
-            envController.AddRewardForGroup(-.005f);
+            AddReward(-.005f);
         }
     }
 
@@ -168,18 +168,6 @@ public class AmrAgent : Agent
         }
         // If agent has instrument
         sensor.AddObservation(iHaveInstrument);
-
-        // Agent normalized current position
-        //float minValue = -(levelGeneration.GetGridSizeX() * (sheetAssigner.roomDimensions.x + sheetAssigner.gutterSize.x));
-        //float maxValue = levelGeneration.GetGridSizeX() * (sheetAssigner.roomDimensions.x + sheetAssigner.gutterSize.x);
-        ////float yValueRange = 20;
-        ////float yOffSet = levelGeneration.transform.position.y;
-        //float x = (transform.position.x - minValue) / (maxValue - minValue);
-        ////float y = ((transform.position.y - yOffSet) - (-yValueRange)) / (yValueRange - (-yValueRange));
-        //float z = (transform.position.z - minValue) / (maxValue - minValue);
-        //Vector2 normalizedPosition = new Vector2(x, z);
-        //sensor.AddObservation(normalizedPosition);
-        //Debug.Log("Normalized Position: " + normalizedPosition);
 
         // Agent velocity
         Vector2 agentVelocity = new Vector2(amrAgent.velocity.x / 90, amrAgent.velocity.z / 90);
@@ -266,7 +254,7 @@ public class AmrAgent : Agent
             float normalizedDistanceNextDoor = 0;
 
             //Next room position
-            if (path.Count > 1)
+            if (path.Count > 1 && levelGeneration.numberOfRooms != 4)
             {
                 Vector2 directionToMove = path[1].gridPos - path[0].gridPos;
 
@@ -302,6 +290,7 @@ public class AmrAgent : Agent
             float normalizedDistance = distancePointOfInterest / ((gridSizeX + gridSizeY) * 0.7f); // 0.7f is a factor to make the distance smaller
 
             float[] AStarObservationFloats = { normalizedDistanceNextDoor, normalizedDistance };
+            Debug.Log("A* Observation: " + AStarObservationFloats[0] + " " + AStarObservationFloats[1]);
             return AStarObservationFloats;
         }
         else

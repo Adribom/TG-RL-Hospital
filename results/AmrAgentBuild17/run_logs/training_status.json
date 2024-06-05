@@ -1,0 +1,68 @@
+{
+    "HospitalSize": {
+        "lesson_num": 0
+    },
+    "AmrAgent": {
+        "checkpoints": [
+            {
+                "steps": 3999897,
+                "file_path": "results\\AmrAgentBuild17\\AmrAgent\\AmrAgent-3999897.onnx",
+                "reward": 0.0,
+                "creation_time": 1717610925.473455,
+                "auxillary_file_paths": [
+                    "results\\AmrAgentBuild17\\AmrAgent\\AmrAgent-3999897.pt"
+                ]
+            },
+            {
+                "steps": 4999882,
+                "file_path": "results\\AmrAgentBuild17\\AmrAgent\\AmrAgent-4999882.onnx",
+                "reward": 0.0,
+                "creation_time": 1717612147.0475886,
+                "auxillary_file_paths": [
+                    "results\\AmrAgentBuild17\\AmrAgent\\AmrAgent-4999882.pt"
+                ]
+            },
+            {
+                "steps": 5999978,
+                "file_path": "results\\AmrAgentBuild17\\AmrAgent\\AmrAgent-5999978.onnx",
+                "reward": null,
+                "creation_time": 1717613388.4699328,
+                "auxillary_file_paths": [
+                    "results\\AmrAgentBuild17\\AmrAgent\\AmrAgent-5999978.pt"
+                ]
+            },
+            {
+                "steps": 6999998,
+                "file_path": "results\\AmrAgentBuild17\\AmrAgent\\AmrAgent-6999998.onnx",
+                "reward": 0.0,
+                "creation_time": 1717614634.9307115,
+                "auxillary_file_paths": [
+                    "results\\AmrAgentBuild17\\AmrAgent\\AmrAgent-6999998.pt"
+                ]
+            },
+            {
+                "steps": 7261845,
+                "file_path": "results\\AmrAgentBuild17\\AmrAgent\\AmrAgent-7261845.onnx",
+                "reward": 0.0,
+                "creation_time": 1717614958.421582,
+                "auxillary_file_paths": [
+                    "results\\AmrAgentBuild17\\AmrAgent\\AmrAgent-7261845.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 7261845,
+            "file_path": "results\\AmrAgentBuild17\\AmrAgent.onnx",
+            "reward": 0.0,
+            "creation_time": 1717614958.421582,
+            "auxillary_file_paths": [
+                "results\\AmrAgentBuild17\\AmrAgent\\AmrAgent-7261845.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.0.0",
+        "torch_version": "2.2.2+cu121"
+    }
+}

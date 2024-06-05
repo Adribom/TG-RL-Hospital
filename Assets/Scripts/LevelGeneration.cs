@@ -59,15 +59,15 @@ public class LevelGeneration : MonoBehaviour
                 break;
             case 4.0f: // Small Hospital
                 this.worldSize = new Vector2(5, 5);
-                this.numberOfRooms = 10;
+                this.numberOfRooms = 5;
                 break;
             case 5.0f: // Medium Hospital
-                this.worldSize = new Vector2(6, 6);
-                this.numberOfRooms = 20;
+                this.worldSize = new Vector2(5, 5);
+                this.numberOfRooms = 10;
                 break;
             case 6.0f: // Large Hospital
-                this.worldSize = new Vector2(7, 7);
-                this.numberOfRooms = 30;
+                this.worldSize = new Vector2(6, 6);
+                this.numberOfRooms = 15;
                 break;
             default:
                 Debug.Log("Invalid world size");
@@ -107,11 +107,29 @@ public class LevelGeneration : MonoBehaviour
         else if (numberOfRooms == 4)
         {
             // Construct a square map with 4 rooms
-            rooms[gridSizeX + 1, gridSizeY] = new Room(new Vector2(1, 0), 0);
+            int randomIndex = UnityEngine.Random.Range(0, 3);
+
+            if (randomIndex == 0)
+            {
+                rooms[gridSizeX + 1, gridSizeY] = new Room(new Vector2(1, 0), 3);
+                rooms[gridSizeX + 1, gridSizeY + 1] = new Room(new Vector2(1, 1), 0);
+                rooms[gridSizeX, gridSizeY + 1] = new Room(new Vector2(0, 1), 0);
+            }
+            else if (randomIndex == 1)
+            {
+                rooms[gridSizeX + 1, gridSizeY] = new Room(new Vector2(1, 0), 0);
+                rooms[gridSizeX + 1, gridSizeY + 1] = new Room(new Vector2(1, 1), 3);
+                rooms[gridSizeX, gridSizeY + 1] = new Room(new Vector2(0, 1), 0);
+            }
+            else
+            {
+                rooms[gridSizeX + 1, gridSizeY] = new Room(new Vector2(1, 0), 0);
+                rooms[gridSizeX + 1, gridSizeY + 1] = new Room(new Vector2(1, 1), 0);
+                rooms[gridSizeX, gridSizeY + 1] = new Room(new Vector2(0, 1), 3);
+            }
+
             takenPositions.Insert(0, new Vector2(0, 1));
-            rooms[gridSizeX + 1, gridSizeY + 1] = new Room(new Vector2(1, 1), 3);
             takenPositions.Insert(0, new Vector2(1, 1));
-            rooms[gridSizeX, gridSizeY + 1] = new Room(new Vector2(0, 1), 0);
             takenPositions.Insert(0, new Vector2(1, 0));
             return;
         }

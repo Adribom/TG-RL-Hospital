@@ -388,17 +388,6 @@ public class EnvController : MonoBehaviour
         {
             selectedDeliveryRooms = RandomlySelectRooms(maxDeliveryPoints, roomRootsOR);
         }
-        // Last deliveries are in the SPD
-        //int maxDeliveryPointsOnSPD = 0;
-        //for (int i = 0; i < maxDeliveryPoints - selectedDeliveryRooms.Count; i++)
-        //{
-        //    maxDeliveryPointsOnSPD++;
-        //    selectedDeliveryRooms.Add(roomRootSPD);
-        //    if (maxDeliveryPointsOnSPD == 3)
-        //    {
-        //        break;
-        //    }
-        //}
         selectedDeliveryRooms.Add(roomRootSPD);
         if (hospitalSize == 2.0f || hospitalSize == 3.0f)
         {
@@ -411,17 +400,6 @@ public class EnvController : MonoBehaviour
         {
             selectedPickupRooms = RandomlySelectRooms(maxDeliveryPoints, roomRootsOR);
         }
-        // Last pickup points are in the CS
-        //int maxPickupPointsOnCS = 0;
-        //for (int i = 0; i < maxDeliveryPoints - selectedDeliveryRooms.Count; i++)
-        //{
-        //    maxPickupPointsOnCS++;
-        //    selectedPickupRooms.Add(roomRootCS);
-        //    if (maxPickupPointsOnCS == 3)
-        //    {
-        //        break;
-        //    }
-        //}
         selectedPickupRooms.Add(roomRootCS);
         if (hospitalSize == 2.0f || hospitalSize == 3.0f)
         {
@@ -520,27 +498,28 @@ public class EnvController : MonoBehaviour
 
     private List<GameObject> ActivateOnePointInRangeWithTag(List<GameObject> selectedRooms, string tag)
     {
-        bool inverseSearch = false;
 
+        List<GameObject> pointsWithTag = new List<GameObject>();
         List<GameObject> activatedPoints = new List<GameObject>();
         foreach (GameObject roomRoot in selectedRooms)
         {
+            pointsWithTag = new List<GameObject>();
             // Activate one point of interest with the tag
-            int currentIndex = roomRoot.transform.childCount - 1;
-            for (int i = 0; i < roomRoot.transform.childCount; i++)
+            foreach (Transform child in roomRoot.transform)
             {
-                int index = inverseSearch ? currentIndex - 1 - i : i;
-                Transform child = roomRoot.transform.GetChild(index);
                 if (child.gameObject.tag == tag && child.gameObject.activeSelf == false)
                 {
-                    child.gameObject.SetActive(true);
                     // print parent location
-                    activatedPoints.Add(child.gameObject);
-                    inverseSearch = !inverseSearch;
-                    goto outerLoop;
+                    pointsWithTag.Add(child.gameObject);
                 }
             }
-        outerLoop:;
+            // Activate on randon point on list
+            if (pointsWithTag.Count > 0)
+            {
+                int randomIndex = Random.Range(0, pointsWithTag.Count);
+                pointsWithTag[randomIndex].SetActive(true);
+                activatedPoints.Add(pointsWithTag[randomIndex]);
+            }
         }
         return activatedPoints;
     }
