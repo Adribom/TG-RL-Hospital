@@ -179,6 +179,47 @@ public class AmrAgent : Agent
         //sensor.AddObservation(normalizedRotation.y);
 
         // Other Agenst's positions? #TODO: test if the model gets better with this observation
+        if (envController.AgentsList.Count > 1)
+        {
+            // Get list of agents in the environment
+            List<GameObject> AgentsOnScene = envController.GetChildrenWithTag(envController.transform, "AmrAgent");
+
+            foreach (GameObject agent in AgentsOnScene)
+            {
+                if (agent != this.gameObject)
+                {
+                    Transform agentWorldPos = agent.transform;
+
+                    // Distance of agent to other agent
+                    float distanceAmrX = math.abs(agentWorldPos.position.x - this.gameObject.transform.position.x);
+                    float distanceAmrZ = math.abs(agentWorldPos.position.z - this.gameObject.transform.position.z);
+
+                    float distanceAmr = math.sqrt(math.pow(distanceAmrX, 2f) + math.pow(distanceAmrZ, 2f));
+
+                    // Normalize distance to next door
+                    float gridSizeX = levelGeneration.GetGridSizeX() * (sheetAssigner.roomDimensions.x + sheetAssigner.gutterSize.x);
+                    float gridSizeY = levelGeneration.GetGridSizeY() * (sheetAssigner.roomDimensions.y + sheetAssigner.gutterSize.y);
+                    float normalizedAgentDistance = distanceAmr / ((gridSizeX + gridSizeY) * 0.7f); // 0.7f is a factor to make the distance smaller
+
+                    // Get the alignment between the two agents
+                    Vector3 directionThisAgentFacing = this.transform.forward; // Direction to where the agent is looking for calculating alignments
+                    directionThisAgentFacing.Normalize();
+
+                    Vector3 directionOtherAgent = agentWorldPos.position - this.transform.position; // Direction to the other agent
+
+                    // Normalize the vectors to a unit vector
+                    directionOtherAgent.Normalize();
+
+                    // Calculate the dot product between the two vectors
+                    float alignmentWithAgent = Vector3.Dot(directionThisAgentFacing, directionOtherAgent);
+
+                    // Add the normalized distance and alignment to the observation as a vector
+                    Vector2 otherAgentObservation = new Vector2(normalizedAgentDistance, alignmentWithAgent);
+                    //Debug.Log("Other Agent Observation: " + otherAgentObservation.x + " " + otherAgentObservation.y);
+                    sensor.AddObservation(otherAgentObservation);
+                }
+            }
+        }
     }
 
     /// <summary>

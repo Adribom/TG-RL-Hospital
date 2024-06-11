@@ -446,7 +446,7 @@ public class EnvController : MonoBehaviour
 
     }
 
-    public static List<GameObject> GetChildrenWithTag(Transform parent, string tag)
+    public List<GameObject> GetChildrenWithTag(Transform parent, string tag)
     {
         List<GameObject> taggedGameObjects = new List<GameObject>();
 
