@@ -9,6 +9,7 @@ using UnityEditor;
 using UnityEngine.Device;
 using System.IO;
 using Unity.Mathematics;
+//using UnityEditor.Experimental.GraphView;
 
 public class AmrAgent : Agent
 {
@@ -79,10 +80,10 @@ public class AmrAgent : Agent
                 sphereIndicator.SetActive(true);
 
                 // Add reward only for agent that has the instrument
-                if (envController.hospitalSize >= 4f)
-                {
-                    AddReward(.5f / envController.maxDeliveryPoints);
-                }
+                // if (envController.hospitalSize >= 4f)
+                // {
+                //     AddReward(.5f / envController.maxDeliveryPoints);
+                // }
             }
         }
         if (other.gameObject.tag == "DeliveryPoint")
@@ -145,6 +146,7 @@ public class AmrAgent : Agent
         {
             for (int i = 0; i < pickupDeliveryPairs.Count; i++)
             {
+                // TODO: Pass world position directly to the A* observation
                 Vector2 currentRoomGridPos = sheetAssigner.WorldPosToGridPos(this.transform);
                 //Debug.Log("currentRoomGridPos: " + currentRoomGridPos);
                 GameObject pickupPoint = pickupDeliveryPairs[i].Item1;
@@ -161,7 +163,6 @@ public class AmrAgent : Agent
                 }
 
                 Vector2 pickupPointGridPos = sheetAssigner.WorldPosToGridPos(pickupPoint.transform);
-                //Debug.Log("pickupPointGridPos: " + pickupPointGridPos);
                 List<Room> path = pathfinding.FindPath(currentRoomGridPos, pickupPointGridPos);
                 bufferSensorComponent.AppendObservation(AStarObservation(path, pickupPoint.transform, sheetAssigner.GridPosToWorldPos(currentRoomGridPos)));
             }
@@ -170,12 +171,12 @@ public class AmrAgent : Agent
         sensor.AddObservation(iHaveInstrument);
 
         // Agent velocity
-        Vector2 agentVelocity = new Vector2(amrAgent.velocity.x / 90, amrAgent.velocity.z / 90);
-        sensor.AddObservation(agentVelocity);
+        //Vector2 agentVelocity = new Vector2(amrAgent.velocity.x / 90, amrAgent.velocity.z / 90);
+        //sensor.AddObservation(agentVelocity);
 
         // Agent normalized rotation
-        Vector3 normalizedRotation = transform.rotation.eulerAngles / 180.0f - Vector3.one;  // [-1,1]
-        sensor.AddObservation(normalizedRotation.y);
+        //Vector3 normalizedRotation = transform.rotation.eulerAngles / 180.0f - Vector3.one;  // [-1,1]
+        //sensor.AddObservation(normalizedRotation.y);
 
         // Other Agenst's positions? #TODO: test if the model gets better with this observation
     }
@@ -186,7 +187,7 @@ public class AmrAgent : Agent
     public void MoveAgent(ActionSegment<int> act)
     {
         // Force agent to reduce time to complete the task
-        envController.AddRewardForGroup(-1f / MaxStep);
+        envController.AddRewardForGroup((-1f / MaxStep) / envController.numberOfAgents);
         var dirToGo = Vector3.zero;
         var rotateDir = Vector3.zero;
 
@@ -246,12 +247,17 @@ public class AmrAgent : Agent
         }
     }
 
-    private float[] AStarObservation(List<Room> path, Transform deliveryPointPos, Vector2 currentRoomWorldPos)
+    private float[] AStarObservation(List<Room> path, Transform pointOfInterestPos, Vector2 currentRoomWorldPos)
     {
         // Create a vector observation that contains: (distance_to_next_room's_door, distance_point_of_interest)
         if (path != null && path.Count > 0)
         {
             float normalizedDistanceNextDoor = 0;
+            float alignmentWithDoor = 0;
+            float alignmentWithPointOfInterest = 0;
+
+            Vector3 directionAgent = this.transform.forward; // Direction to where the agent is looking for calculating alignments
+            directionAgent.Normalize();
 
             //Next room position
             if (path.Count > 1 && levelGeneration.numberOfRooms != 4)
@@ -267,6 +273,7 @@ public class AmrAgent : Agent
                     (float)System.Math.Floor(roomSizeInTiles.y / 2) * tileSize
                     );
                 Vector2 nextDoorcoordinate = currentRoomWorldPos + (directionToMove * distanceCenterToDoor);
+                Vector3 nextDoorWorldPos = new Vector3(nextDoorcoordinate.x, this.transform.position.y, nextDoorcoordinate.y);
 
                 // Distance of agent to next door 
                 float distanceAmrDoorX = math.abs(nextDoorcoordinate.x - this.gameObject.transform.position.x);
@@ -277,11 +284,21 @@ public class AmrAgent : Agent
                 Vector2 maxDistance = new Vector2((roomSizeInTiles.x) * tileSize, (roomSizeInTiles.y) * tileSize);
                 float normalizationRatio = math.abs((maxDistance.x * directionToMove.x) + (maxDistance.y * directionToMove.y));
                 normalizedDistanceNextDoor = distanceNextDoor / normalizationRatio;
+
+
+                // Get the alignment between the agent and the door
+                Vector3 directionDoor = nextDoorWorldPos - this.transform.position; // Direction to the door
+
+                // Normalize the vectors to a unit vector
+                directionDoor.Normalize();
+
+                // Calculate the dot product between the two vectors
+                alignmentWithDoor = Vector3.Dot(directionAgent, directionDoor);
             }
 
             //distance to delivery point
-            float distanceAmrPointX = math.abs(deliveryPointPos.position.x - this.gameObject.transform.position.x);
-            float distanceAmrPointZ = math.abs(deliveryPointPos.position.z - this.gameObject.transform.position.z);
+            float distanceAmrPointX = math.abs(pointOfInterestPos.position.x - this.gameObject.transform.position.x);
+            float distanceAmrPointZ = math.abs(pointOfInterestPos.position.z - this.gameObject.transform.position.z);
             float distancePointOfInterest = math.sqrt(math.pow(distanceAmrPointX, 2f) + math.pow(distanceAmrPointZ, 2f));
 
             //Normalize data between 0 and 1 before adding to the observation
@@ -289,13 +306,23 @@ public class AmrAgent : Agent
             float gridSizeY = levelGeneration.GetGridSizeY() * (sheetAssigner.roomDimensions.y + sheetAssigner.gutterSize.y);
             float normalizedDistance = distancePointOfInterest / ((gridSizeX + gridSizeY) * 0.7f); // 0.7f is a factor to make the distance smaller
 
-            float[] AStarObservationFloats = { normalizedDistanceNextDoor, normalizedDistance };
-            Debug.Log("A* Observation: " + AStarObservationFloats[0] + " " + AStarObservationFloats[1]);
+            // Get Alignment between agent and point of interest
+            Vector3 directionPoint = pointOfInterestPos.position - this.transform.position; // Direction to the point of interest
+
+            // Normalize the vectors to a unit vector
+            directionPoint.Normalize();
+
+            // Calculate the dot product between the two vectors
+            alignmentWithPointOfInterest = Vector3.Dot(directionAgent, directionPoint);
+
+            float[] AStarObservationFloats = { normalizedDistanceNextDoor, alignmentWithDoor, normalizedDistance, alignmentWithPointOfInterest };
+            //Debug.Log("A* Observation: " + AStarObservationFloats[0] + " " + AStarObservationFloats[1] + " " + AStarObservationFloats[2] + " " + AStarObservationFloats[3]);
             return AStarObservationFloats;
         }
         else
         {
-            float[] AStarObservationFloats = { 0, 0 };
+            float[] AStarObservationFloats = { 0, 0, 0, 0 };
+            //Debug.Log("A* Observation: " + AStarObservationFloats[0] + " " + AStarObservationFloats[1] + " " + AStarObservationFloats[2] + " " + AStarObservationFloats[3]);
             return AStarObservationFloats;
         }
     }

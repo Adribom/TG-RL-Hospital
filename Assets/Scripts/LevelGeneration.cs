@@ -49,7 +49,7 @@ public class LevelGeneration : MonoBehaviour
                 this.worldSize = new Vector2(1, 1);
                 this.numberOfRooms = 1;
                 break;
-            case 2.0f: // Single Room
+            case 2.0f: // Big Room
                 this.worldSize = new Vector2(3, 3);
                 this.numberOfRooms = 4;
                 break;
@@ -57,15 +57,19 @@ public class LevelGeneration : MonoBehaviour
                 this.worldSize = new Vector2(2, 2);
                 this.numberOfRooms = 2;
                 break;
-            case 4.0f: // Small Hospital
+            case 4.0f: // Three Rooms 
+                this.worldSize = new Vector2(3, 3);
+                this.numberOfRooms = 3;
+                break;
+            case 5.0f: // Small Hospital
                 this.worldSize = new Vector2(5, 5);
                 this.numberOfRooms = 5;
                 break;
-            case 5.0f: // Medium Hospital
+            case 6.0f: // Medium Hospital
                 this.worldSize = new Vector2(5, 5);
                 this.numberOfRooms = 10;
                 break;
-            case 6.0f: // Large Hospital
+            case 7.0f: // Large Hospital
                 this.worldSize = new Vector2(6, 6);
                 this.numberOfRooms = 15;
                 break;

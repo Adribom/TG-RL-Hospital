@@ -1,0 +1,43 @@
+behaviors:
+  AmrAgent:
+    trainer_type: poca
+    hyperparameters:
+      batch_size: 1024
+      buffer_size: 10240
+      learning_rate: 0.00005
+      beta: 0.007 #  With decay = learning_rate_schedule
+      epsilon: 0.2 #  With decay = learning_rate_schedule
+      lambd: 0.95
+      num_epoch: 4
+      learning_rate_schedule: linear
+    network_settings:
+      normalize: false
+      hidden_units: 256
+      num_layers: 3
+      vis_encode_type: simple
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+      # curiosity:
+      #   gamma: 0.99
+      #   strength: 0.02
+      #   network_settings:
+      #     hidden_units: 256
+      #   learning_rate: 0.0003
+    keep_checkpoints: 10
+    checkpoint_interval: 1000000
+    max_steps: 6000000
+    time_horizon: 128
+    summary_freq: 250000
+environment_parameters:
+  HospitalSize:
+    curriculum:
+      - name: PairRoom # The '-' is important as this is a list
+        completion_criteria:
+          measure: progress
+          behavior: AmrAgent
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 1
+        value: 3.0

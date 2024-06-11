@@ -59,17 +59,22 @@ public class EnvController : MonoBehaviour
                 maxDeliveryPoints = 2;
                 MaxEnvironmentSteps = 20000;
                 break;
-            case 4.0f: // Small Hospital
+            case 4.0f: // Three Rooms
+                numberOfAgents = 1;
+                maxDeliveryPoints = 2;
+                MaxEnvironmentSteps = 20000;
+                break;
+            case 5.0f: // Small Hospital
                 numberOfAgents = 2;
                 maxDeliveryPoints = 2;
                 MaxEnvironmentSteps = 25000;
                 break;
-            case 5.0f: // Medium Hospital
+            case 6.0f: // Medium Hospital
                 numberOfAgents = 3;
                 maxDeliveryPoints = 3;
                 MaxEnvironmentSteps = 25000;
                 break;
-            case 6.0f: // Large Hospital
+            case 7.0f: // Large Hospital
                 numberOfAgents = 4;
                 maxDeliveryPoints = 4;
                 MaxEnvironmentSteps = 30000;
@@ -147,9 +152,9 @@ public class EnvController : MonoBehaviour
             GameObject AgentGameObject = Instantiate(AgentPrefab, this.gameObject.transform);
             amrAgentComponent = AgentGameObject.GetComponent<AmrAgent>();
             newPlayer.Agent = amrAgentComponent;
-            AgentsList.Add(newPlayer);
             m_AgentGroup.RegisterAgent(newPlayer.Agent);
             newPlayer.Agent.gameObject.name = "Agent" + (i + numberOfAgents);
+            AgentsList.Add(newPlayer);
         }
     }
 
@@ -389,7 +394,7 @@ public class EnvController : MonoBehaviour
             selectedDeliveryRooms = RandomlySelectRooms(maxDeliveryPoints, roomRootsOR);
         }
         selectedDeliveryRooms.Add(roomRootSPD);
-        if (hospitalSize == 2.0f || hospitalSize == 3.0f)
+        if ((hospitalSize == 2.0f || hospitalSize == 3.0f) || (selectedDeliveryRooms.Count == 1 && hospitalSize >= 5.0f))
         {
             selectedDeliveryRooms.Add(roomRootSPD);
         }
@@ -401,7 +406,7 @@ public class EnvController : MonoBehaviour
             selectedPickupRooms = RandomlySelectRooms(maxDeliveryPoints, roomRootsOR);
         }
         selectedPickupRooms.Add(roomRootCS);
-        if (hospitalSize == 2.0f || hospitalSize == 3.0f)
+        if ((hospitalSize == 2.0f || hospitalSize == 3.0f) || (selectedPickupRooms.Count == 1 && hospitalSize >= 5.0f))
         {
             selectedPickupRooms.Add(roomRootCS);
         }
@@ -473,13 +478,20 @@ public class EnvController : MonoBehaviour
 
     private List<GameObject> RandomlySelectRooms(int numberOfRooms, List<GameObject> roomRoots)
     {
+        int numberOfRoomsToSelect = numberOfRooms - 1; // Subtract 1 because the SPD or CS room is always selected at the end
         int safetyCounter = 0;
         List<GameObject> selectedRooms = new List<GameObject>();
-        for (int i = 0; i < numberOfRooms - 1; i++)
+        for (int i = 0; i < numberOfRoomsToSelect; i++)
         {
+            if (safetyCounter > 100)
+            {
+                Debug.Log("Safety counter reached 100 when generating points of interest");
+                break;
+            }
+
             int randomIndex = Random.Range(0, roomRoots.Count);
             //Check if the room is already in the list
-            if (selectedRooms.Contains(roomRoots[randomIndex]))
+            if (selectedRooms.Contains(roomRoots[randomIndex]) && (roomRoots.Count >= numberOfRoomsToSelect))
             {
                 i--;
                 safetyCounter++;
@@ -487,23 +499,17 @@ public class EnvController : MonoBehaviour
             }
             selectedRooms.Add(roomRoots[randomIndex]);
             safetyCounter++;
-            if (safetyCounter > 100)
-            {
-                Debug.Log("Safety counter reached 100 when generating points of interest");
-                break;
-            }
+            
         }
         return selectedRooms;
     }
 
     private List<GameObject> ActivateOnePointInRangeWithTag(List<GameObject> selectedRooms, string tag)
     {
-
-        List<GameObject> pointsWithTag = new List<GameObject>();
         List<GameObject> activatedPoints = new List<GameObject>();
         foreach (GameObject roomRoot in selectedRooms)
         {
-            pointsWithTag = new List<GameObject>();
+            List<GameObject>  pointsWithTag = new List<GameObject>();
             // Activate one point of interest with the tag
             foreach (Transform child in roomRoot.transform)
             {
@@ -513,7 +519,7 @@ public class EnvController : MonoBehaviour
                     pointsWithTag.Add(child.gameObject);
                 }
             }
-            // Activate on randon point on list
+            // Activate on random point on list
             if (pointsWithTag.Count > 0)
             {
                 int randomIndex = Random.Range(0, pointsWithTag.Count);

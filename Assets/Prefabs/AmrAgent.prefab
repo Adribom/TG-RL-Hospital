@@ -174,7 +174,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 4
+    VectorObservationSize: 1
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 0
@@ -205,7 +205,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SensorName: BufferSensor
-  m_ObservableSize: 2
+  m_ObservableSize: 4
   m_MaxNumObservables: 4
 --- !u!114 &4402035051046159016
 MonoBehaviour:
@@ -241,10 +241,10 @@ MonoBehaviour:
   - DeliveryPoint
   - PickupPoint
   - AmrAgent
-  m_RaysPerDirection: 4
-  m_MaxRayDegrees: 75
+  m_RaysPerDirection: 3
+  m_MaxRayDegrees: 85
   m_SphereCastRadius: 0.5
-  m_RayLength: 38
+  m_RayLength: 8
   m_RayLayerMask:
     serializedVersion: 2
     m_Bits: 4294967291
